@@ -61,7 +61,7 @@ var peli = {
       }
       pelilauta += '</table>';
       pelilauta += '<input id="syote" name="syotekentta" size="1" maxLength="1" />';
-      pelilauta += "W = ylos, A = oikealle, S = alas, D = vasemmalle";
+      pelilauta += "W = ylos, A = vasemmalle, S = alas, D = oikealle";
 
       document.getElementById('pelilauta').innerHTML = pelilauta;
 
@@ -115,7 +115,7 @@ var peli = {
       document.getElementById("syote").focus();
       var syote = document.getElementById("syote").value;
       var muutos = 0;
-      
+
       // TODO: parempi näppäinpainallusten kontrolli (nuolinäppäimet, WASD, etc.)
       switch (syote.toLowerCase()) {
 
@@ -177,7 +177,7 @@ var peli = {
 
       // Käsittele pelilaudan reunojen ylitykset
       // TODO: switch case
-      if (this.mato.suunta == "oikea" && 
+      if (this.mato.suunta == "oikea" &&
          0 == (uusiPaa % this.pelialue.leveys) &&
          0 != uusiPaa ){
          uusiPaa = wanhaPaa - (this.pelialue.leveys-1);
