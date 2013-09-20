@@ -4,7 +4,7 @@ var MessageBroker = function() {
 
     self.init = function() {
         console.log("MessageBroker started");
-        self.ws = new WebSocket('ws://localhost:8080');
+        self.ws = new WebSocket('ws://lierot-jvanhalen.rhcloud.com:8000');
 
         self.ws.onmessage = function (event) {
             //var msg = JSON.parse(event.data);
