@@ -1,4 +1,3 @@
-lierot
-======
+The OpenShift `nodejs` cartridge documentation can be found at:
 
-Matopeli SQL ja tkhj -opintojaksolle
+https://github.com/openshift/origin-server/tree/master/cartridges/openshift-origin-cartridge-nodejs/README.md

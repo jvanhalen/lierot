@@ -1,32 +1,53 @@
-var ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
-var port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+var MessageBroker = require('./server/MessageBroker');
+var MessageHandler = require('./server/MessageHandler');
 
-var WebSocketServer = require('ws').Server
-  , http = require('http')
-  , express = require('express')
-  , app = express();
+var Server = function() {
 
-app.use('/javascript', express.static(__dirname + '/javascript'));
-app.get('/', function(req, res) {
-/*require('fs').readFile(__dirname + '/index.html', 'utf8', function(err, text){
-        res.send(text);
-    });*/
-    res.sendfile('index.html');
-});
+  console.log("asdf");
+  // Määrittele scope
+  var self = this;
 
-var server = http.createServer(app);
-server.listen(port, ipaddress);
-console.log("server:", ipaddress, ":", port);
+  self.setupVariables = function() {
+    self.ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
+    self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;
 
-var wss = new WebSocketServer({server: server});
-wss.on('connection', function(ws) {
-  var id = setInterval(function() {
-    ws.send('ping pong', function() { /* ignore errors */ });
-  }, 1000);
-  console.log('started client interval');
-  ws.on('close', function() {
-    console.log('stopping client interval');
-    clearInterval(id);
-  });
-});
+    if (typeof self.ipaddress === "undefined") {
+    //code
+    console.log("all env variables not defined, using IP 127.0.0.1");
+    self.ipaddress = "127.0.0.1";
+    self.port = 8080;
+    }
+  },
 
+  self.init = function() {
+    console.log("Server initializing...")
+
+    self.setupVariables();
+
+    var http = require('http'),
+     express = require('express');
+    self.app = express();
+
+    // Salli hakemistot
+    self.app.use('/client', express.static(__dirname + '/client'));
+    self.app.use('/common', express.static(__dirname + '/common'));
+
+    self.app.get('/', function(req, res) {
+    res.sendfile('./index.html');
+    });
+
+    self.server = http.createServer(self.app);
+    self.server.listen(self.port, self.ipaddress);
+    console.log("server:", self.ipaddress, ":", self.port);
+
+    // Luo MessageBroker
+    self.messageBroker = new MessageBroker(self.server);
+
+    // Alusta MessageBroker
+    self.messageBroker.init();
+
+  }
+}
+
+var server = new Server();
+server.init();
