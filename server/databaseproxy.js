@@ -2,6 +2,7 @@ var DatabaseProxy = function() {
 
     // Määrittele scope
     var self = this;
+    self.messageHandler = undefined;
 
     self.init = function() {
 
@@ -28,7 +29,6 @@ var DatabaseProxy = function() {
         self.querychat();
     },
 
-    // Yksi tapa käsitellä tietokannasta saatu vastaus (esimerkki, ei lopullinen toteutus)
     self.handleResponse = function(rows, cols) {
         console.log("handleresponse:", rows.length + ' ROWS found');
     },
@@ -58,7 +58,14 @@ var DatabaseProxy = function() {
                 });
                 return 0;
         });
+    },
+    
+    self.attachHandler = function(msghandler) {
+        self.messageHandler = msghandler;
     }
+    
+    // Alusta tietokantayhteys olion luonnin yhteydessä
+    self.init();
 }
 
 module.exports = DatabaseProxy;

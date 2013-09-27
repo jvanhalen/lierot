@@ -3,6 +3,8 @@ var messages = require('../common/messages.js');
 var MessageHandler = function() {
 
    var self = this;
+   self.databaseProxy = undefined;
+   self.messageBroker = undefined;
 
    self.receive = function(from, data) {
       console.log(data);
@@ -50,6 +52,10 @@ var MessageHandler = function() {
    self.attachBroker = function(msgBroker) {
       self.messageBroker = msgBroker;
       console.log("MessageHandler: MessageBroker attached");
+   },
+   
+   self.attachDatabaseProxy = function(dbproxy) {
+      self.databaseProxy = dbproxy;
    }
 }
 

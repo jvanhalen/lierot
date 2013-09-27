@@ -1,5 +1,7 @@
 var MessageBroker = require('./server/messagebroker');
 var MessageHandler = require('./server/messagehandler');
+var DatabaseProxy = require('./server/databaseproxy');
+
 
 
 var Server = function() {
@@ -42,13 +44,20 @@ var Server = function() {
         self.server.listen(self.port, self.ipaddress);
         console.log("created server @ ", self.ipaddress, ":", self.port);
     
+        // Luo palvelinoliot
         self.messageBroker = new MessageBroker(self.server);
         self.messageHandler = new MessageHandler();
+        self.databaseProxy = new DatabaseProxy();
         
-        // Kytke viestikäsittelijä viestimeklariin
-        self.messageBroker.attachHandler(self.messageHandler);
+        // Kytke oliot toisiinsa (molempiin suuntiin):
+        // MessageBroker -> MessageHandler -> DatabaseProxy
+        self.messageBroker.attachHandler(self.messageHandler);        
+        self.messageHandler.attachDatabaseProxy(self.databaseProxy);
+        
+        // DatabaseProxy -> MessageHandler -> MessageBroker        
+        self.databaseProxy.attachHandler(self.messageHandler);
         self.messageHandler.attachBroker(self.messageBroker);
-    
+        
         console.log("server started");
     }
 
