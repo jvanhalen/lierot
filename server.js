@@ -1,57 +1,64 @@
 var MessageBroker = require('./server/messagebroker');
 var MessageHandler = require('./server/messagehandler');
-var DatabaseProxy = require('./server/databaseproxy');
+
 
 var Server = function() {
+    
+    //  Määrittele scope
+    var self = this;
+    
+    self.setupVariables = function() {
+        //  Set the environment variables we need for OpenShift app
+        self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
+        self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;
 
-  console.log("asdf");
-  // Määrittele scope
-  var self = this;
+        if (typeof self.ipaddress === "undefined") {
+            //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
+            //  allows us to run/test the app locally.
+            console.warn('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1');
+            self.ipaddress = "127.0.0.1";
+        };
+    };
+    
+    self.init = function() {
 
-  self.setupVariables = function() {
-    self.ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
-    self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+        console.log("Server: initializing...");
+        
+        var http = require('http')
+        , express = require('express');
+        self.app = express();
+        
+        // Salli hakemistot
+        self.app.use('/client', express.static(__dirname + '/client'));
+        self.app.use('/common', express.static(__dirname + '/common'));
 
-    if (typeof self.ipaddress === "undefined") {
-      //code
-      console.log("all env variables not defined, using IP 127.0.0.1");
-      self.ipaddress = "127.0.0.1";
-      self.port = 8080;
+        // Palauta index.html selaimille
+        self.app.get('/', function(req, res) {
+            console.log("loading index.html");
+            res.sendfile('index.html');
+        });
+        
+        self.server = http.createServer(self.app);
+        self.server.listen(self.port, self.ipaddress);
+        console.log("created server @ ", self.ipaddress, ":", self.port);
+    
+        self.messageBroker = new MessageBroker(self.server);
+        self.messageHandler = new MessageHandler();
+        
+        // Kytke viestikäsittelijä viestimeklariin
+        self.messageBroker.attachHandler(self.messageHandler);
+        self.messageHandler.attachBroker(self.messageBroker);
+    
+        console.log("server started");
     }
-  },
 
-  self.init = function() {
-    console.log("Server initializing...")
-
+    // Aseta palvelimen sisäiset muuttujat
     self.setupVariables();
-
-    var http = require('http'),
-     express = require('express');
-    self.app = express();
-
-    // Salli hakemistot
-    self.app.use('/client', express.static(__dirname + '/client'));
-    self.app.use('/common', express.static(__dirname + '/common'));
-
-    self.app.get('/', function(req, res) {
-    res.sendfile('./index.html');
-    });
-
-    self.server = http.createServer(self.app);
-    self.server.listen(self.port, self.ipaddress);
-    console.log("server:", self.ipaddress, ":", self.port);
-
-    // Luo MessageBroker
-    self.messageBroker = new MessageBroker(self.server);
-    self.databaseProxy = new DatabaseProxy();
-
-    // Alusta MessageBroker
-    self.messageBroker.init();
-    // Alusta DatabaseProxy
-    self.databaseProxy.init();
-
-  }
+    
+    // Alusta ja käynnistä palvelin luotaessa
+    self.init();
 }
 
-var server = new Server();
-server.init();
+// Luo palvelininstanssi
+var server = new Server("server");
+
