@@ -28,6 +28,11 @@ var DatabaseProxy = function() {
         self.querychat();
     },
 
+    // Yksi tapa käsitellä tietokannasta saatu vastaus (esimerkki, ei lopullinen toteutus)
+    self.handleResponse = function(rows, cols) {
+        console.log("handleresponse:", rows.length + ' ROWS found');
+    },
+    
     self.querychat = function() {
         var mysql = require('db-mysql');
         
@@ -49,7 +54,7 @@ var DatabaseProxy = function() {
                                 console.log('ERROR: ' + error);
                                 return;
                         }
-                        console.log(rows.length + ' ROWS found');
+                    self.handleResponse(rows, cols);
                 });
                 return 0;
         });
