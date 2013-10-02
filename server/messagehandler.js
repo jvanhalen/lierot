@@ -12,11 +12,16 @@ var MessageHandler = function() {
       if (data.name) {
          switch (data.name) {
             case 'AUTH_REQ':
-               console.log("client requested authentication:", data.username, data.password);
+               console.log("client requested authentication:", data.username, data.passwordhash);
                //TODO: kysy käyttäjänimi ja salasana tietokannasta
                var resp = messages.message.AUTH_RESP.new();
                resp.response = "OK";
                self.send(from, resp);
+               break;
+
+            case 'REG_REQ':
+               console.log("client requested registration:", data.username, data.passwordhash);
+               self.databaseProxy.newUserAccount(from, data.name, data.username, data.passwordhash, data.username + "@inter.net");
                break;
 
             case 'CHAT_SYNC':
@@ -53,9 +58,20 @@ var MessageHandler = function() {
       self.messageBroker = msgBroker;
       console.log("MessageHandler: MessageBroker attached");
    },
-   
+
    self.attachDatabaseProxy = function(dbproxy) {
       self.databaseProxy = dbproxy;
+   },
+
+   self.handleDatabaseResponse = function(from, msgname, result) {
+      switch(msgname) {
+         case 'REG_REQ':
+            console.log("MessageHandler: handleDatabaseResponse", result);
+               var resp = messages.message.REG_RESP.new();
+               resp.response = "OK";
+               self.send(from, resp);
+            break;
+      }
    }
 }
 

@@ -15,6 +15,27 @@
                 return JSON.parse(JSON.stringify(this.message));
             }
         },
+        REG_REQ: {
+            message: {
+                name: "REG_REQ",   // Client lähettää tämän palvelimelle
+                username: null,     // Clientin käyttäjänimi (lue html-lomakkeesta)
+                passwordhash: null  // SHA1-koodattu salasanatiiviste (lue html-lomakkeesta ja generoi SHA1-tiiviste)
+            },
+            new: function() {
+                // Luo uusi kopio tästä viestistä
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },
+        REG_RESP: {
+            message: {
+                name: "REG_RESP",  // Palvelin vastaa clientille
+                response: "OK/NOK"
+            },
+            new: function() {
+                // Luo uusi kopio tästä viestistä
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },
         AUTH_REQ: {
             message: {
                 name: "AUTH_REQ",   // Client lähettää tämän palvelimelle

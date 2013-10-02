@@ -21,7 +21,21 @@
                     // Lähetä kirjautumispyyntö
                     var msg = messages.message.AUTH_REQ.new();
                     msg.username = document.getElementById("kayttajanimi").value;
-                    msg.password = Sha1.hash(document.getElementById("salasana").value);
+                    msg.passwordhash = Sha1.hash(document.getElementById("salasana").value);
+                    peli.messageBroker.send(msg);
+                }
+            }
+
+            function rekisteroidy() {
+                // Tarkista syötteet
+                if (document.getElementById("kayttajanimi").value && document.getElementById("salasana").value) {
+                    console.log(document.getElementById("kayttajanimi").value);
+                    console.log(document.getElementById("salasana").value);
+
+                    // Lähetä kirjautumispyyntö
+                    var msg = messages.message.REG_REQ.new();
+                    msg.username = document.getElementById("kayttajanimi").value;
+                    msg.passwordhash = Sha1.hash(document.getElementById("salasana").value);
                     peli.messageBroker.send(msg);
                 }
             }
@@ -52,6 +66,7 @@
                 Käyttäjänimi: <input type="text" id="kayttajanimi" length="10">
                 Salasana: <input type="password" id="salasana" length="10">
                 <input id="kirjaudu_painike" type="submit" value="Kirjaudu" onclick="kirjaudu()">
+                <input id="rekisteroidy_painike" type="submit" value="Rekisteroidy" onclick="rekisteroidy()">
               </p>
             </fieldset>
           </div>

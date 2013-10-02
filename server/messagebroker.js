@@ -21,8 +21,8 @@ var MessageBroker = function(serverapp) {
 
          // YHTEYDEN KATKETESSA
          websocket.on('close', function() {
-            console.log('MessageBroker: client disconnected', websocket._socket.remoteAddress, ":", websocket._socket.remotePort);
-            delete self.connectedClients[websocket._socket.remotePort];
+            console.log('MessageBroker: client disconnected', websocket._socket._peername.address, ":", websocket._socket._peername.port);
+            delete self.connectedClients[websocket._socket._peername.port];
          });
 
          // VIESTI VASTAANOTETTAESSA
