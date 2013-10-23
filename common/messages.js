@@ -20,7 +20,7 @@
                 name: "MATCH_SYNC",
                 phase: "INIT/RUN/END",
                 msgid: null,
-                players: [],
+                worms: [],
                 food: []
             },
             new: function() {

@@ -16,8 +16,9 @@ var mato = function(nimi){  // Tällä määrittelyllä varaudutaan siihen että
     }
 }
 
-var ruoka = function(){
+var ruoka = function(sijainti){
     var self = this;
+    self.sijainti = sijainti;
     self.vari = "red";
     self.kasvu = Math.floor(Math.random()*1+1); // Paljonko mato kasvaa ruoan napsittuaan, laita esim. +0 --> +1
 }
@@ -42,7 +43,6 @@ var Peli = function(from, data, messagehandler) {
     self.pelialue = new pelialue();
     self.ruoanMaara = 8;
     self.ruoat = [];
-    self.ruoka = new ruoka();
 
     self.alusta = function() {
         console.log("new game created for", data.username);
@@ -57,7 +57,7 @@ var Peli = function(from, data, messagehandler) {
         msg.phase = "INIT";
         msg.msgid = 101;
 
-        msg.players[0] = self.mato;
+        msg.worms[0] = self.mato;
         msg.food = self.ruoat;
 
         console.log(msg);
@@ -100,15 +100,15 @@ var Peli = function(from, data, messagehandler) {
         var i = 0;
         while(self.ruoat.length < self.ruoanMaara) {
             var x = Math.floor(Math.random()*self.pelialue.korkeus*self.pelialue.leveys);
-            self.ruoat[i++] = x;
-            self.pelialue.solut[x] = self.ruoka.vari;
+            self.ruoat.push(new ruoka(x));
+            self.pelialue.solut[x] = self.ruoat[self.ruoat.length-1].vari;
         }
     },
 
     self.poistaRuoka = function(ruutu) {
         //console.log("Poista ruoka", ruutu);
         for (var x=0;x<self.ruoat.length; x++) {
-            if (self.ruoat[x] == ruutu) {
+            if (self.ruoat[x].sijainti == ruutu) {
                 self.ruoat.splice(x, 1);
             }
         }

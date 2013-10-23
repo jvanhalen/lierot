@@ -132,15 +132,21 @@ var Peli = function () {
 
     },
 
-    self.paivitaTilanne = function() {
+    self.paivitaTilanne = function(msg) {
+        console.log("paivita tilanne");
 
-        // TODO: Lue ja lähetä käyttäjän syöte
-
-        // Renderöi uusi mato
-        for (var x=0;x<this.mato.sijainti.length; x++) {
-            document.getElementById(this.mato.sijainti[x]).bgColor = this.mato.vari;
+        // Renderöi madot
+        for (var id=0; id<msg.worms.length; id++) {
+            for (var x=0;x<msg.worms[id].sijainti.length; x++) {
+                document.getElementById(msg.worms[id].sijainti[x]).bgColor = msg.worms[id].vari;
+            }
         }
 
+        // Renderöi ruoat
+        for (var x=0; msg.food.length; x++ ) {
+            console.log(msg.food[x].sijainti);
+            document.getElementById(msg.food[x].sijainti).bgColor = msg.food[x].vari;
+        }
         // Päivitä pistetilanne
         document.getElementById("pistetilanne").innerHTML = "Pisteesi: " + this.mato.pisteet.toString();
     }

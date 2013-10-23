@@ -35,6 +35,10 @@ var MessageHandler = function(peli) {
                 }
                 break;
 
+            case 'MATCH_SYNC':
+                self.peli.paivitaTilanne(msg);
+                break;
+
             case 'REG_RESP':
                 console.log(msg.name, msg.response);
                 break;
