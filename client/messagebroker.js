@@ -1,8 +1,7 @@
 var MessageBroker = function() {
 
     var self = this;
-    self.messageHandler = new MessageHandler();
-
+    self.messageHandler = undefined;
 
     self.init = function() {
         console.log("MessageBroker started");
@@ -17,17 +16,21 @@ var MessageBroker = function() {
         self.ws.onerror = function (event) {
             console.log("websocket failed");
         };
-        
+
         self.ws.onopen = function (event) {
             console.log("websocket connected");
-            };
-        },
-        
-        self.send = function(data) {
-            console.log("data:", data);
-            self.ws.send(JSON.stringify(data)); // Käytä JSON.stringify serialisoimaan lähetettävä data
-        }
+        };
+    },
 
-    // Alusta websocket luonnin yhteydessä
+    self.send = function(data) {
+        console.log("data:", data);
+        self.ws.send(JSON.stringify(data)); // K√§yt√§ JSON.stringify serialisoimaan l√§hetett√§v√§ data
+    }
+
+    self.attachHandler = function(messageHandler) {
+        self.messageHandler = messageHandler;
+    },
+
+    // Alusta websocket luonnin yhteydess√§
     self.init();
 }

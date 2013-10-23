@@ -11,8 +11,8 @@ USE matopeli;
 
 CREATE TABLE UserAccount (
   ID int NOT NULL AUTO_INCREMENT,
-  UserName varchar(32),
-  PasswordHash varchar(16),
+  UserName varchar(32) NOT NULL,
+  PasswordHash char(40) NOT NULL,
   Email varchar(255),
   SessionKey varchar(16),
   LastLogin timestamp,

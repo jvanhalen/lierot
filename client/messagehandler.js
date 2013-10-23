@@ -1,34 +1,66 @@
-var MessageHandler = function() {
-   var self = this;
+var MessageHandler = function(peli) {
+    var self = this;
+    self.peli = peli;
+    self.username = undefined;
+    self.messageBroker = undefined;
 
-   self.receive = function(msg) {
-      console.log(msg);
+    self.receive = function(msg) {
+        console.log(msg);
 
-      switch (msg.name) {
+        switch (msg.name) {
+            case 'CHAT_SYNC':
+                console.log("chat_sync");
+                // jQuerysta l√∂ytyisi suoraan .append()-funktio, jolla saataisiin sis√§lt√∂√§ "jatkettua"
+                document.getElementById('viestialue').innerHTML += '<div id="viesti"><a href="#" title="viesti">'+ msg.username + ':</a>&nbsp;&nbsp;' + msg.text + '</div>';
+                // Chatbox auto-scroll
+                document.getElementById('keskustelualue').scrollTop += 20;
+                break;
 
-         case 'CHAT_SYNC':
-               console.log("chat_sync");
-               // jQuerystä löytyisi suoraan .append()-funktio, jolla saataisiin sisältöä "jatkettua"
-               document.getElementById('viestialue').innerHTML += '<div id="viesti"><a href="#" title="viesti">'+ msg.username + ':</a>&nbsp;&nbsp;' + msg.text + '</div>';
-               // Chatbox auto-scroll
-               document.getElementById('keskustelualue').scrollTop += 20;
-            break;
+            case 'AUTH_RESP':
+                console.log(msg.name, msg.response);
+                if(msg.response == "OK") {
+                    self.setUsername(document.getElementById('kayttajanimi').value);
+                    document.getElementById('infoteksti').style.color = "black";
+                    document.getElementById('infoteksti').innerHTML = "Kirjauduit k√§ytt√§j√§n√§ <strong>" +
+                    document.getElementById('kayttajanimi').value + "</strong>";
+                    document.getElementById('infoteksti').innerHTML += '<br /><input id="poistu_painike" type="submit" value="Poistu" onclick="poistu();">';
+                    self.peli.alustaPeli();
+                }
+                else {
+                    var tmp = document.getElementById('infoteksti').innerHTML;
+                    console.log(tmp);
+                    document.getElementById('infoteksti').style.color = "red";
+                    document.getElementById('infoteksti').innerHTML = "Kirjautuminen ep√§onnistui";
+                    var t = setTimeout(function() { document.getElementById('infoteksti').innerHTML = tmp; document.getElementById('infoteksti').style.color = "black"; }, 2000)
+                }
+                break;
 
-         case 'AUTH_REQ':
-            console.log(msg.name, msg.response);
-            break;
+            case 'REG_RESP':
+                console.log(msg.name, msg.response);
+                break;
 
-         case 'LOGIN_RESP':
-            console.log(msg.name, msg.response);
-            break;
+            default:
+                console.log("Default branch reached: ", msg);
+                break;
+        }
+    },
 
-         case 'REG_RESP':
-            console.log(msg.name, msg.response);
-            break;
+    self.init = function() {
+        console.log("MessageHandler started");
+    },
+    self.send = function(data) {
+        self.messageBroker.send(data);
+    },
+    self.setUsername = function(username) {
+        self.username = username;
+    },
+    self.getUsername = function() {
+        return self.username;
+    },
 
-         default:
-            console.log("Default branch reached: ", msg);
-            break;
-      }
-   }
+    self.attachBroker = function(messageBroker) {
+        self.messageBroker = messageBroker;
+    }
+
+    self.init();
 }
