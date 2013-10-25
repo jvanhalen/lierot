@@ -1,6 +1,8 @@
 var MessageBroker = require('./server/messagebroker');
 var MessageHandler = require('./server/messagehandler');
 var DatabaseProxy = require('./server/databaseproxy');
+var GameServer = require('./server/game');
+
 
 var Server = function() {
 
@@ -46,6 +48,7 @@ var Server = function() {
         self.messageBroker = new MessageBroker(self.server);
         self.messageHandler = new MessageHandler();
         self.databaseProxy = new DatabaseProxy();
+        self.gameServer = new GameServer(self.messageHandler);
 
         // Kytke oliot toisiinsa (molempiin suuntiin):
         // MessageBroker -> MessageHandler -> DatabaseProxy

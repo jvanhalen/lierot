@@ -8,6 +8,7 @@
     <script src="./client/messagebroker.js" type="text/javascript"></script>
     <script src="./client/messagehandler.js" type="text/javascript"></script>
     <script src="./common/messages.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="client/style.css">
     <script type="text/javascript">
         function lataaLieroT() {
             peli = new Peli();
@@ -19,7 +20,7 @@
                 // Lähetä kirjautumispyyntö
                 var msg = messages.message.AUTH_REQ.new();
                 msg.username = document.getElementById("kayttajanimi").value;
-                msg.passwordhash = null; // Sha1.hash(document.getElementById("salasana").value);
+                msg.passwordhash = Sha1.hash(document.getElementById("salasana").value);
                 peli.messageHandler.send(msg);
             }
         }
@@ -34,21 +35,15 @@
                 peli.messageHandler.send(msg);
             }
         }
-
-        function aloitaPeli() {
-            // Tarkista syötteet
-            // Lähetä kirjautumispyyntö
-            var msg = messages.message.QUEUE_MATCH.new();
-            msg.username = peli.messageHandler.getUsername();
-            peli.messageHandler.send(msg);
-        }
-
+        
         function poistu() {
             // TODO: lähetä LOGOUT-viesti palvelimelle?
             location.reload();
         }
 
         function handleKeypress(event) {
+            event.preventDefault;
+            console.log("event.which:", event.which, "event.keyCode:", event.keyCode, "event.charCode:", event.charCode);
             if (event.which == 13 || event.keyCode == 13) {
                 // Lähetä tekstirimpsu jos sen pituus > 0
                 var chatmsg = document.getElementById('keskusteluviesti').value;
@@ -59,15 +54,21 @@
                     peli.messageHandler.send(msg);
                     document.getElementById('keskusteluviesti').value = "";
                 }
-                return false;
             }
-            return true;
+            return true; // Huom! return false; ei lisää merkkiä textboxiin
         }
+        
+        function pelisyote(event) {
 
+            if (true == peli.onKaynnissa()) {
+                peli.kasittelePainallus(event);
+            }
+            return true; // Huom! return false; ei lisää merkkiä textboxiin
+        }
     </script>
 </head>
 
-<body onload="lataaLieroT();">
+<body onload="lataaLieroT();" onkeypress="return pelisyote(event)">
 <div id="kirjautuminen">
     <div id="kirjautumisikkuna">
     <fieldset>
@@ -83,7 +84,7 @@
     </fieldset>
     </div>
 </div>
-<div id="pelilauta">
+<div id="pelilauta" onkeypress="return pelisyote(event)">
     <p>LieroT ei lataudu!?!? Onko JavaScript sallittu selaimessasi?</p>
 </div>
 <div id="chatti" style="width:50%;">

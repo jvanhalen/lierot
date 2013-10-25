@@ -1,3 +1,4 @@
+
 var mato = function() {  // Tällä määrittelyllä varaudutaan siihen että lieroja on tulevaisuudessa useampiakin
     this.nimi = "liero";
     this.vari = "blue";
@@ -28,6 +29,7 @@ var Peli = function () {
     var self = this;
     self.messageBroker = undefined;
     self.messageHandler = undefined;
+    self.kaynnissa = false;
 
     self.alusta = function() {
 
@@ -37,7 +39,7 @@ var Peli = function () {
         self.messageBroker.attachHandler(self.messageHandler);
         self.messageHandler.attachBroker(self.messageBroker);
 
-    }
+    },
 
     self.alustaPeli = function(uusipeli) {
         console.log("alustaPeli");
@@ -47,9 +49,6 @@ var Peli = function () {
             self.pelialue = new pelialue();
         }
         else {
-            // Huomioi setInterval scope .bind(this)
-            //peli.ajastin = self.setInterval(peli.paivitaTilanne.bind(this), 150);
-            self.ajastin = 0;
             self.mato = new mato();
             self.pelialue = new pelialue();
             self.ruoanMaara = 8;
@@ -58,6 +57,7 @@ var Peli = function () {
         }
 
         self.alustaPelilauta();
+
     },
 
     self.alustaPelilauta = function() {
@@ -79,7 +79,7 @@ var Peli = function () {
         pelilauta += '</table>';
         pelilauta += '<input id="syote" name="syotekentta" size="1" maxLength="1" />';
         pelilauta += "W = ylos, A = vasemmalle, S = alas, D = oikealle";
-        pelilauta += '<input id="aloitapeli_painike" type="submit" value="AloitaPeli" onclick="aloitaPeli()">';
+        pelilauta += '<input id="aloitapeli_painike" type="submit" value="AloitaPeli" onclick="peli.aloitaPeli()">';
 
         document.getElementById('pelilauta').innerHTML = pelilauta;
 
@@ -87,23 +87,22 @@ var Peli = function () {
     },
 
     self.varitaPelilauta = function() {
-        console.log("varitaPelilauta");
+        //console.log("varitaPelilauta");
         for(var i=0; i<self.pelialue.korkeus; i++) {
             for(var j=0; j<self.pelialue.leveys; j++) {
                 var id = (j+(i*self.pelialue.korkeus));
                 document.getElementById(id).bgColor = self.pelialue.vari;
             }
         }
-
+/*
         // Aseta liero aloituskohtaan
         if (self.mato) {
             console.log("aseta mato");
-            for(var x=0;x<self.mato.aloitusPituus;x++) {
+            for(var x=0; x<self.mato.aloitusPituus; x++) {
                 document.getElementById(self.mato.sijainti[x]).bgColor = self.mato.vari;
             }
         }
-
-
+*/
     },
 
     self.asetaRuoat = function() {
@@ -122,7 +121,7 @@ var Peli = function () {
 
     self.poistaRuoka = function(ruutu) {
         //console.log("Poista ruoka", ruutu);
-        for (var x=0;x<self.ruoat.length; x++) {
+        for (var x=0; x<self.ruoat.length; x++) {
             if (self.ruoat[x] == ruutu) {
                 self.ruoat.splice(x, 1);
             }
@@ -133,22 +132,94 @@ var Peli = function () {
     },
 
     self.paivitaTilanne = function(msg) {
-        console.log("paivita tilanne");
+        //console.log("paivita tilanne");
 
+        // Puhdista pelilauta
+        self.varitaPelilauta();
+        
         // Renderöi madot
         for (var id=0; id<msg.worms.length; id++) {
-            for (var x=0;x<msg.worms[id].sijainti.length; x++) {
+            for (var x=0; x<msg.worms[id].sijainti.length; x++) {
                 document.getElementById(msg.worms[id].sijainti[x]).bgColor = msg.worms[id].vari;
             }
         }
 
         // Renderöi ruoat
-        for (var x=0; msg.food.length; x++ ) {
-            console.log(msg.food[x].sijainti);
+        for (var x=0; x<msg.food.length; x++) {
             document.getElementById(msg.food[x].sijainti).bgColor = msg.food[x].vari;
         }
+        
         // Päivitä pistetilanne
-        document.getElementById("pistetilanne").innerHTML = "Pisteesi: " + this.mato.pisteet.toString();
+        document.getElementById("pistetilanne").innerHTML = "";
+        for (var x=0; x<msg.worms.length; x++) {
+            document.getElementById("pistetilanne").innerHTML += msg.worms[x].nimi;
+            document.getElementById("pistetilanne").innerHTML += ":&nbsp;" +  msg.worms[x].pisteet + "&nbsp;&nbsp|&nbsp;&nbsp;";
+        }
+        if (msg.state == "END") {
+            alert("Game over!");
+        }
+    },
+    
+    self.aloitaPeli = function(){
+        // Tarkista syötteet
+        // Lähetä kirjautumispyyntö
+        var msg = messages.message.QUEUE_MATCH.new();
+        msg.username = self.messageHandler.getUsername();
+        self.messageHandler.send(msg);
+        self.kaynnissa = true;
+        
+    },
+
+    self.kasittelePainallus = function(event) {
+        var suunta = null;
+        // Toimiikohan alla oleva ORaus kaikissa selaimissa?
+        var syote = event.which | event.keyCode | event.charCode;
+        switch (syote) {
+            case 65:
+            case 97:
+                console.log("A");
+                suunta = 'vasen';
+                break;
+            
+            case 68:
+            case 100:
+                console.log("D");
+                suunta = 'oikea';
+                break;
+            
+            case 83:
+            case 115:
+                console.log("S");
+                suunta = 'alas';
+                break;
+            
+            case 87:
+            case 119:
+                console.log("W");
+                suunta = 'ylos';
+                break;
+            
+            default:
+                console.log(syote);
+                break;
+        }
+        
+        if (suunta != null) {
+            // Lähetä päivitys palvelimelle
+            var msg = messages.message.USER_INPUT.new();
+            msg.direction = suunta;
+            msg.username = self.messageHandler.getUsername();
+            self.messageHandler.send(msg);
+        }
+        return false;
+    },
+    
+    self.lopetaPeli = function() {
+        self.kaynnissa = false;
+    },
+    
+    self.onKaynnissa = function() {
+        return self.kaynnissa;
     }
 
     self.alusta();

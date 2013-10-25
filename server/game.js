@@ -1,10 +1,12 @@
 var messages = require('../common/messages');
 
-var mato = function(nimi){  // Tällä määrittelyllä varaudutaan siihen että lieroja on tulevaisuudessa useampiakin
+var mato = function(nimi, numero){  // Tällä määrittelyllä varaudutaan siihen että lieroja on tulevaisuudessa useampiakin
     var self = this;
+    self.elossa = true; // true / false
     self.nimi = nimi;
     self.vari = "blue";
     self.aloitusPituus = 5;
+    self.pituus = self.aloitusPituus;
     self.sijainti = [];
     self.suunta = "oikea"; // Menosuunta: oikea, vasen, ylos, alas
     self.nopeus = 1;
@@ -31,82 +33,145 @@ var pelialue = function() {
     self.vari = "lightblue";   // Ruudukon väri
 }
 
-// Pelisession määrittely alkaa tästä
-var Peli = function(from, data, messagehandler) {
+// Pelipalvelimen määrittely alkaa tästä
+var GameServer = function(messagehandler) {
+    
+    var self = this;
+    self.messageHandler = messagehandler;
+    self.messageHandler.attachGameServer(self);
+    self.gameSessions = {};
+    
+    self.queueMatch = function(from, data) {
+        console.log("queue match", data);
+        // TODO: better matchmaking for multiplayer games
+        if (undefined !== self.gameSessions[data.username]) {
+            // Already in game, do we have to respond something?
+        }
+        else {
+            var playerList = [{
+                websocket: from,
+                username: data.username
+            }];
+            self.createGame(playerList);
+        }
+    },
+    
+    self.createGame = function(playerList) {
+        var game = new Peli(playerList, self.messageHandler, self);
+        // Connect players to the game
+        for (var x=0; x<playerList.length; x++) {
+            self.gameSessions[playerList[x].username] = {player: playerList[x], game: game};
+        }
+    },
+    
+    self.endGame = function(playerList) {
+        console.log("GameServer.endGame");
+        var game = playerList[0].game;
+        for (var x=0; x<playerList.length; x++) {
+            delete self.gameSessions[playerList[x].username];
+        }
+    },
+    
+    self.userData = function(from, msg) {
+        switch (msg.name) {
+            case 'DISCONNECT_REQ':
+                console.log("DISCONNECT_REQ from", msg.username);
+                if (undefined !== self.gameSessions[msg.username]) {
+                    self.gameSessions[msg.username].game.disconnect(msg);
+                }
+                break;
+            
+            case 'USER_INPUT':
+                //console.log("USER_INPUT from", msg.username);
+                if (undefined !== self.gameSessions[msg.username]) {
+                    self.gameSessions[msg.username].game.userInput(msg);
+                }
+                break;
+            default:
+                console.log("default branch reached at GameServer.userData", msg);
+                break;
+        }
+    }
+}
+
+var Peli = function(playerList, messageHandler, gameServer) {
 
     var self = this;
 
-    self.messageHandler = messagehandler;
+    self.messageHandler = messageHandler;
+    self.gameServer = gameServer;
 
     self.ajastin = 0;
-    self.mato = new mato(data.username);
-    self.pelialue = new pelialue();
     self.ruoanMaara = 8;
+    self.pelialue = null;
+    self.madot = [];
     self.ruoat = [];
-
+    self.sessionId = 1;
+    self.playerList = playerList;
+    
+    console.log(playerList.length);
+    
     self.alusta = function() {
-        console.log("new game created for", data.username);
+        console.log("creating new game for", self.playerList.length, "players.");
 
-
-        self.mato = new mato(data.username);
         self.pelialue = new pelialue();
+        for (var x=0; x<self.playerList.length; x++) {
+            self.madot.push(new mato(self.playerList[x].username, x));
+        }
         self.alustaPelilauta();
+        self.asetaLierot();
         self.asetaRuoat();
 
         var msg = messages.message.MATCH_SYNC.new();
         msg.phase = "INIT";
         msg.msgid = 101;
 
-        msg.worms[0] = self.mato;
+        msg.worms = self.madot;
         msg.food = self.ruoat;
 
-        console.log(msg);
-        self.messageHandler.send(from, msg);
-
+        self.syncPlayers(msg);
+        
         // Huomioi setInterval scope .bind(self)
-        //peli.ajastin = self.setInterval(peli.paivitaTilanne.bind(self), 150);
+        self.ajastin = setInterval(self.paivitaTilanne, 150);
     },
 
     self.alustaPelilauta = function() {
-
-        // Luo ruudukko
-        /*
-        for(var i=0; i<self.pelialue.korkeus; i++) {
-            for(var j=0; j<self.pelialue.leveys; j++) {
-                var id = (j+(i*self.pelialue.korkeus));
-                pelilauta += ruutu;
-            }
-        }*/
-        self.varitaPelilauta();
+        console.log("alustaPelilauta");
+        for(var i=0; i<self.pelialue.korkeus*self.pelialue.leveys; i++) {
+            self.pelialue.solut[i] = self.pelialue.vari;
+        }
     },
 
-    self.varitaPelilauta = function() {
-        for(var i=0; i<self.pelialue.korkeus; i++) {
-            for(var j=0; j<self.pelialue.leveys; j++) {
-                var id = (j+(i*self.pelialue.korkeus));
-                self.pelialue.solut[id] = self.pelialue.vari;
+    self.asetaLierot = function() {
+        // Aseta liero(t) aloituskohtaan
+        for (var i=0; i<self.madot.length; i++) {
+            for(var x=0;x<self.madot[i].aloitusPituus;x++) {
+                self.pelialue.solut[x] = self.madot[i].vari;
             }
-        }
-
-        // Aseta liero aloituskohtaan
-        for(var x=0;x<self.mato.aloitusPituus;x++) {
-            self.pelialue.solut[x] = self.mato.vari;
-        }
-
+        }        
     },
+    
     self.asetaRuoat = function() {
+        console.log("asetaRuoat");
         // Tarkista puuttuuko ruokia
         // Aseta ruoat satunnaiseen kohtaan
         var i = 0;
+
         while(self.ruoat.length < self.ruoanMaara) {
             var x = Math.floor(Math.random()*self.pelialue.korkeus*self.pelialue.leveys);
-            self.ruoat.push(new ruoka(x));
-            self.pelialue.solut[x] = self.ruoat[self.ruoat.length-1].vari;
+
+            // Jos paikka on vapaa, aseta siihen uusi ruoka
+            if (self.pelialue.solut[x] == self.pelialue.vari) {
+                console.log("uusi ruoka:", x);
+                var uusiruoka = new ruoka(x);
+                self.ruoat.push(uusiruoka);
+                self.pelialue.solut[x] = uusiruoka.vari;
+            }
         }
     },
 
     self.poistaRuoka = function(ruutu) {
-        //console.log("Poista ruoka", ruutu);
+        console.log("poistaRuoka", ruutu);
         for (var x=0;x<self.ruoat.length; x++) {
             if (self.ruoat[x].sijainti == ruutu) {
                 self.ruoat.splice(x, 1);
@@ -118,125 +183,179 @@ var Peli = function(from, data, messagehandler) {
     },
 
     self.paivitaTilanne = function() {
-        console.log(self);
+        //console.log("paivitaTilanne");
 
         // Lue ja käsittele syöte
         //document.getElementById("syote").focus();
         var syote = 0; //document.getElementById("syote").value;
         var muutos = 0;
 
-        // TODO: parempi näppäinpainallusten kontrolli (nuolinäppäimet, WASD, etc.)
-        switch (syote.toLowerCase()) {
-
-            case "w":
-                if (self.mato.suunta != "alas") {
-                    self.mato.suunta = "ylos";
+        // Käy läpi kaikki pelissä olevat madot (huom! matojen päivitysjärjestyksellä on merkitystä mm. törmäystarkistuksissa)
+        for (var x=0; x<self.madot.length; x++) {
+            // Siirrä vain elossa olevia matoja
+            if(self.madot[x].elossa == true)
+            {
+                //console.log("handling worm", x);
+                switch(self.madot[x].suunta) {
+                    case "oikea":
+                        muutos += self.madot[x].nopeus;
+                        break;
+                    case "vasen":
+                        muutos -= self.madot[x].nopeus;
+                        break;
+                    case "ylos":
+                        muutos -= (self.pelialue.korkeus)*(self.madot[x].nopeus);
+                        break;
+                    case "alas":
+                        muutos += (self.pelialue.korkeus)*(self.madot[x].nopeus);
+                        break;
+                    default:
+                        console.log("invalid worm direction:", self.madot[x].suunta);
+                        break;
                 }
-                break;
-
-            case "a":
-                if (self.mato.suunta != "oikea") {
-                    self.mato.suunta = "vasen";
+    
+                // Liikuta matoa
+                // Talleta hännän sijainti
+                var hanta = self.madot[x].sijainti[0];
+    
+                // Talleta nykyinen pään sijainti ja laske uuden pään sijainti
+                var pituus = self.madot[x].sijainti.length;
+                var wanhaPaa = self.madot[x].sijainti[pituus-1];
+                var uusiPaa = self.madot[x].sijainti[pituus-1] + muutos;
+    
+                // Käsittele pelilaudan reunojen ylitykset
+                // TODO: switch case
+                if (self.madot[x].suunta == "oikea" &&
+                    0 == (uusiPaa % self.pelialue.leveys) &&
+                    0 != uusiPaa ) {
+                    uusiPaa = wanhaPaa - (self.pelialue.leveys-1);
                 }
-                break;
-
-            case "s":
-                if (self.mato.suunta != "ylos") {
-                    self.mato.suunta = "alas";
+                if (self.madot[x].suunta == "vasen" && 0 == (wanhaPaa % (self.pelialue.leveys))) {
+                    uusiPaa = wanhaPaa + (self.pelialue.leveys-1);
                 }
-                break;
-
-            case "d":
-                if (self.mato.suunta != "vasen") {
-                    self.mato.suunta = "oikea";
+                if (self.madot[x].suunta == "ylos" && wanhaPaa < self.pelialue.leveys) {
+                    uusiPaa = wanhaPaa + (self.pelialue.korkeus * (self.pelialue.leveys-1));
                 }
+                if (self.madot[x].suunta == "alas" && wanhaPaa >= (self.pelialue.leveys*(self.pelialue.korkeus - 1))) {
+                    uusiPaa = wanhaPaa % (self.pelialue.leveys);
+                }
+    
+                //console.log("self.madot[x].vari:", self.madot[x].vari);
+                //console.log("suunta", self.madot[x].suunta, " wanhaPaa:", wanhaPaa, "uusiPaa:", uusiPaa);
+                // Tarkista osuimmeko ruokaan (TODO: huomioi erilaiset ruoat, nyt vain ruoat[0])
+                if (self.pelialue.solut[uusiPaa] == self.ruoat[0].vari) {
+                    console.log("food hit, increase worm");
+                    // Osuimme, kasvata matoa
+                    self.pelialue.solut[uusiPaa] = self.madot[x].vari;
+                    self.madot[x].sijainti.push(uusiPaa);
+                    self.poistaRuoka(uusiPaa);
+    
+                    // Kasvata pistemäärää
+                    self.madot[x].pisteet++;
+                }
+                // TODO: miten huomioida eri väriset madot?
+                else if (self.pelialue.solut[uusiPaa] == self.madot[x].vari) {
+                    // TODO: lopeta peli (poista mato kentältä vai jätä kentälle?)
+                    console.log("end game");
+                    self.madot[x].elossa = false;
+                }
+                else {
+                    // Emme osuneet, aseta uusi pää ja leikkaa pala hännästä
+                    //console.log("no food, move worm");
+                    self.madot[x].sijainti.push(uusiPaa);
+                    self.pelialue.solut[self.madot[x].sijainti[0]] = self.pelialue.vari;
+                    self.pelialue.solut[uusiPaa] = self.madot[0].vari;
+                    self.madot[x].sijainti.shift();
+                }
+            }
+        } 
+        // Lähetä päivitetyt tiedot (TODO: lähetä päivitys kaikille pelaajille)
+        var msg = messages.message.MATCH_SYNC.new();
+        var elossa = false;
+        for (var item in self.madot) {
+            if (self.madot[item].elossa == true) {
+                elossa=true;
                 break;
-            default:
-                break;
+            }
         }
-
-        //document.getElementById("syote").value = "";
-
-        switch(self.mato.suunta) {
-            case "oikea":
-                muutos += self.mato.nopeus;
-                break;
-            case "vasen":
-                muutos -= self.mato.nopeus;
-                break;
-            case "ylos":
-                muutos -= (self.pelialue.korkeus)*(self.mato.nopeus);
-                break;
-            case "alas":
-                muutos += (self.pelialue.korkeus)*(self.mato.nopeus);
-                break;
-            default:
-                break;
-        }
-
-        // Liikuta matoa
-
-        // Talleta hännän sijainti
-        var hanta = self.mato.sijainti[0];
-
-        // Talleta nykyinen pään sijainti ja laske uuden pään sijainti
-        var pituus = self.mato.sijainti.length;
-        var wanhaPaa = self.mato.sijainti[pituus-1];
-        var uusiPaa = self.mato.sijainti[pituus-1] + muutos;
-
-        // Käsittele pelilaudan reunojen ylitykset
-        // TODO: switch case
-        if (self.mato.suunta == "oikea" &&
-            0 == (uusiPaa % self.pelialue.leveys) &&
-            0 != uusiPaa ){
-            uusiPaa = wanhaPaa - (self.pelialue.leveys-1);
-        }
-        if (self.mato.suunta == "vasen" && 0 == (wanhaPaa % (self.pelialue.leveys))) {
-            uusiPaa = wanhaPaa + (self.pelialue.leveys-1);
-        }
-        if (self.mato.suunta == "ylos" && wanhaPaa < self.pelialue.leveys) {
-            uusiPaa = wanhaPaa + (self.pelialue.korkeus * (self.pelialue.leveys-1));
-        }
-        if (self.mato.suunta == "alas" && wanhaPaa >= (self.pelialue.leveys*(self.pelialue.korkeus - 1))) {
-            uusiPaa = wanhaPaa % (self.pelialue.leveys);
-        }
-
-        console.log("suunta", self.mato.suunta, " wanhaPaa:", wanhaPaa, "uusiPaa:", uusiPaa);
-        // Tarkista osuimmeko ruokaan
-        /*if (//document.getElementById(uusiPaa).bgColor == self.ruoka.vari) {
-            // Osuimme, kasvata matoa
-            self.mato.sijainti.push(uusiPaa);
-            self.poistaRuoka(uusiPaa);
-
-            // Kasvata pistemäärää
-            self.mato.pisteet++;
-        }
-        else if (//document.getElementById(uusiPaa).bgColor == self.mato.vari) {
-            // TODO: lopeta peli
-            clearInterval(self.ajastin);
-            alert("Bite me Elmo! Pisteitä " + self.mato.pisteet);
-            location.reload();   // Lataa sivu uudemman kerran (ei kovin elegantti tapa)
+        if (elossa) {
+            msg.phase = "RUN";
         }
         else {
-            // Emme osuneet, aseta uusi pää ja leikkaa pala hännästä
-            self.mato.sijainti.push(uusiPaa);
-            self.mato.sijainti.shift();
-            // Poista häntä taulukosta
-            //document.getElementById(hanta).bgColor = self.pelialue.vari;
+            msg.phase = "END";
         }
+        msg.msgid = 101;
 
-        //console.log(self.mato.sijainti)
-        // Renderöi uusi mato
-        for (var x=0;x<self.mato.sijainti.length; x++) {
-            //document.getElementById(self.mato.sijainti[x]).bgColor = self.mato.vari;
+        msg.worms = self.madot;
+        msg.food = self.ruoat;
+        
+        self.syncPlayers(msg);
+        if (msg.phase == "END") {
+            self.endGame();
         }
+    },
 
-        // Päivitä pistetilanne
-        //document.getElementById("pistetilanne").innerHTML = "Pisteesi: " + self.mato.pisteet.toString();
-        */
+    self.syncPlayers = function(msg) {
+        //console.log("Peli.syncPlayers", msg);
+        for (var x=0; x<self.playerList.length; x++) {
+            self.messageHandler.send(self.playerList[x].websocket, msg);
+        }
+    },
+    
+    self.userInput = function(msg) {
+        // TODO: check user input validity
+        // TODO: Route msg to user specific match
+        for (var x=0; x<self.madot.length; x++) {
+            //console.log("handling worm", x);
+            if (self.madot[x].nimi == msg.username) {
+                switch (msg.direction) {
+                    case "ylos":
+                        if (self.madot[x].suunta != "alas") {
+                            self.madot[x].suunta = "ylos";
+                        }
+                        break;
+        
+                    case "vasen":
+                        if (self.madot[x].suunta != "oikea") {
+                            self.madot[x].suunta = "vasen";
+                        }
+                        break;
+        
+                    case "alas":
+                        if (self.madot[x].suunta != "ylos") {
+                            self.madot[x].suunta = "alas";
+                        }
+                        break;
+        
+                    case "oikea":
+                        if (self.madot[x].suunta != "vasen") {
+                            self.madot[x].suunta = "oikea";
+                        }
+                        break;
+                    default:
+                        console.log("invalid worm direction input:", self.madot[x].suunta);
+                        break;
+                }
+            }
+        }
+    },
+    
+    self.disconnect = function(data) {
+        for (var x=0; x<self.madot.length; x++) {
+            if (self.madot[x].nimi == data.username) {
+                self.madot[x].elossa = false;
+                break;
+            }
+        }        
     }
-
+    self.endGame = function() {
+        // TODO: lopeta peli
+        clearInterval(self.ajastin);
+        self.gameServer.endGame(self.playerList);
+    }
+    
     self.alusta();
+
 }
 
-module.exports = Peli;
+module.exports = GameServer;

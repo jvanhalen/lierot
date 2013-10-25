@@ -4,7 +4,7 @@ var MessageBroker = function(serverapp) {
     // Määrittele scope
     var self = this;
 
-    self.connectedClients  = [];
+    self.connectedClients  = {};
     self.serverapp = serverapp;
 
     self.init = function() {
@@ -14,14 +14,21 @@ var MessageBroker = function(serverapp) {
         self.wss = new WebSocketServer({server: self.serverapp});
 
         self.wss.on('connection', function(websocket) {
-            console.log("MessageBroker: client connected", websocket._socket.remoteAddress, ":", websocket._socket.remotePort);
+            //console.log("MessageBroker: client connected", websocket._socket.remoteAddress, ":", websocket._socket.remotePort);
 
             // Talleta
-            self.connectedClients[websocket._socket.remotePort] = {websocket: websocket, username: undefined};  // Mark username: undefined while client is not authorized
-
+            self.connectedClients[websocket._socket.remotePort] = {websocket: websocket, username: undefined, ingame: false};  // Mark username: undefined while client is not authorized
+            //console.log(self.connectedClients[websocket._socket.remotePort]);
             // YHTEYDEN KATKETESSA
             websocket.on('close', function() {
                 console.log('MessageBroker: client disconnected', websocket._socket._peername.address, ":", websocket._socket._peername.port, "(" + self.connectedClients[websocket._socket._peername.port].username + ")");
+                if (self.connectedClients[websocket._socket._peername.port].ingame == true)  {
+                    // Notify GameServer about the disconnection
+                    var msg = messages.message.DISCONNECT_REQ.new();
+                    msg.username = self.connectedClients[websocket._socket._peername.port].username;
+                    
+                    self.receive(self.connectedClients[websocket._socket._peername.port].websocket, msg);
+                }
                 delete self.connectedClients[websocket._socket._peername.port];
             });
 
@@ -32,7 +39,7 @@ var MessageBroker = function(serverapp) {
                 data = JSON.parse(data);
 
                 // Käsittele kirjautuneilta käyttäjiltä kaikki viestit ja kirjautumattomilta käyttäjiltä vain AUTH_REQ ja REG_REQ
-                if(self.connectedClients[websocket._socket._peername.port].username != undefined || data.name == "AUTH_REQ" || data.name == "REG_REQ") {
+                if(self.connectedClients[websocket._socket._peername.port].username !== undefined || data.name == "AUTH_REQ" || data.name == "REG_REQ") {
                     self.receive(websocket, data);
                 }
                 else {
@@ -43,7 +50,7 @@ var MessageBroker = function(serverapp) {
     },
 
     self.receive = function(from, data) {
-        console.log("MessageBroker.receive", data);
+        //console.log("MessageBroker.receive", data);
 
         // Käytä JSON.parse-funktiota vastaanotetun datan parsimiseen
         if(self.messageHandler) {
@@ -56,8 +63,16 @@ var MessageBroker = function(serverapp) {
 
     self.send = function(to, msg) {
         //console.log("MessageBroker.send", msg);
+        //console.log("sending to port", to._socket._peername.port);
         // JSON vai BSON ?
-        to.send(JSON.stringify(msg));
+        if (undefined !== to) {
+            if (undefined !== self.connectedClients[to._socket._peername.port]) {
+                to.send(JSON.stringify(msg));
+            }
+        }
+        else {
+            console.log("client already disconnected:", to._socket._peername.port);
+        }
     },
 
     self.broadcast = function(data) {

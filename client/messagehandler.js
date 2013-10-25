@@ -5,7 +5,7 @@ var MessageHandler = function(peli) {
     self.messageBroker = undefined;
 
     self.receive = function(msg) {
-        console.log(msg);
+        //console.log(msg);
 
         switch (msg.name) {
             case 'CHAT_SYNC':
@@ -24,7 +24,7 @@ var MessageHandler = function(peli) {
                     document.getElementById('infoteksti').innerHTML = "Kirjauduit käyttäjänä <strong>" +
                     document.getElementById('kayttajanimi').value + "</strong>";
                     document.getElementById('infoteksti').innerHTML += '<br /><input id="poistu_painike" type="submit" value="Poistu" onclick="poistu();">';
-                    self.peli.alustaPeli();
+                    self.peli.alustaPeli(null);
                 }
                 else {
                     var tmp = document.getElementById('infoteksti').innerHTML;
@@ -52,12 +52,15 @@ var MessageHandler = function(peli) {
     self.init = function() {
         console.log("MessageHandler started");
     },
+    
     self.send = function(data) {
         self.messageBroker.send(data);
     },
+    
     self.setUsername = function(username) {
         self.username = username;
     },
+    
     self.getUsername = function() {
         return self.username;
     },

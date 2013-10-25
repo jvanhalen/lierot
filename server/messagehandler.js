@@ -1,11 +1,12 @@
 var messages = require('../common/messages');
-var Peli = require('./game');
+var game = require('./game');
 
 var MessageHandler = function() {
 
     var self = this;
     self.databaseProxy = undefined;
     self.messageBroker = undefined;
+    self.gameServer = undefined;
 
     self.receive = function(from, data) {
         console.log(data);
@@ -13,8 +14,16 @@ var MessageHandler = function() {
         if (data.name) {
             switch (data.name) {
                 case 'AUTH_REQ':
-                    console.log("client requested authentication:", data.username, data.passwordhash);
-                    self.databaseProxy.getLogin(from, data);
+                    if (true == self.isAuthenticated(from, data)) {
+                        // Already authorized, respond NOK
+                        var msg = messages.message.AUTH_RESP.new();
+                        msg.response = "NOK";
+                        self.send(from, msg);
+                    }
+                    else {
+                        console.log("client requested authentication:", data.username, data.passwordhash);
+                        self.databaseProxy.getLogin(from, data);
+                    }
                     break;
 
                 case 'REG_REQ':
@@ -35,9 +44,17 @@ var MessageHandler = function() {
 
                 case 'QUEUE_MATCH':
                     console.log("QUEUE_MATCH from user:", data.username);
-                    self.createMatch(from, data);
+                    self.gameServer.queueMatch(from, data);
                     break;
 
+                case 'USER_INPUT':
+                    self.gameServer.userData(from, data);
+                    break;
+                
+                case 'DISCONNECT_REQ':
+                    console.log("DISCONNECT_REQ");
+                    break;
+                
                 default:
                     console.log("Default branch reached: ", data);
                     break;
@@ -60,6 +77,10 @@ var MessageHandler = function() {
     self.attachBroker = function(msgBroker) {
         self.messageBroker = msgBroker;
         console.log("MessageHandler: MessageBroker attached");
+    },
+    
+    self.attachGameServer = function(gameServer) {
+        self.gameServer = gameServer;  
     },
 
     self.attachDatabaseProxy = function(dbproxy) {
@@ -85,18 +106,30 @@ var MessageHandler = function() {
                 break;
 
             default:
-                console.log("default branch reached");
+                console.log("default branch reached at MessageHandler.handleDatabaseResponse");
                 break;
         }
     },
+    
     self.attachClient = function(websocket, username) {
+        console.log("MessageHandler.attachClient:", username)
         self.messageBroker.attachClient(websocket, username);
     },
-
-    self.createMatch = function(from, data) {
-        //TODO: Tarkista onko mahdollista aloittaa uusi pelisessio
-
-        var peli = new Peli(from, data, self);
+    
+    self.isAuthenticated = function(from, msg) {
+        // Chech whether the user has already connected
+        for (var item in self.messageBroker.connectedClients) {
+            if (self.messageBroker.connectedClients[item].username == msg.username) {
+                console.log("Client has already logged in");
+                return true;
+            }
+        }
+        if (self.messageBroker.connectedClients[from._socket._peername.port].username) {
+            console.log("This socket has already registered as:", msg.username);
+            return true;
+        }
+        
+        return false;
     }
 }
 

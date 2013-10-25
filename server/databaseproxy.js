@@ -48,7 +48,7 @@ var DatabaseProxy = function() {
     self.getLogin = function(from, data) {
 
         var resp = messages.message.AUTH_RESP.new();
-        resp.response="OK";
+        resp.response="NOK";
 
         new mysql.Database(mydb).connect(function(error) {
             if (error) {

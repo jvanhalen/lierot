@@ -27,11 +27,11 @@
                 return JSON.parse(JSON.stringify(this.message));
             }
         },        
-        PLAYER_INPUT: {
+        USER_INPUT: {
             message: {
-                name: "PLAYER_INPUT",
+                name: "USER_INPUT",
                 username: "username",
-                direction: "left/right/up/down"
+                direction: "vasen/oikea/ylos/alas"
             },
             new: function() {
                 return JSON.parse(JSON.stringify(this.message));
@@ -45,7 +45,7 @@
             new: function() {
                 return JSON.parse(JSON.stringify(this.message));
             }
-        },
+        },    
         REG_REQ: {
             message: {
                 name: "REG_REQ",   // Client lähettää tämän palvelimelle
@@ -88,6 +88,25 @@
                 return JSON.parse(JSON.stringify(this.message));
             }
         },
+        DISCONNECT_REQ: {
+            message: {
+                name: "DISCONNECT_REQ",
+                username: "username"
+            },
+            new: function() {
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },
+        DISCONNECT_RESP: {
+            message: {
+                name: "DISCONNECT_RESP",
+                username: "username",
+                response: "OK"
+            },
+            new: function() {
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },        
         PING: {
             message: {
                 name: "PING",

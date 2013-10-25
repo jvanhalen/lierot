@@ -9,7 +9,6 @@ var MessageBroker = function() {
 
         self.ws.onmessage = function (event) {
             var msg = JSON.parse(event.data);
-            console.log(msg);
             self.messageHandler.receive(msg);
         };
 
