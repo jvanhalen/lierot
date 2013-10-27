@@ -2,5 +2,13 @@ The OpenShift `nodejs` cartridge documentation can be found at:
 
 https://github.com/openshift/origin-server/tree/master/cartridges/openshift-origin-cartridge-nodejs/README.md
 
-Credits:
+CURRENT SYSTEM LIMITATIONS:
+https://www.openshift.com/faq/how-many-applications-can-i-deploy-and-what-resource-limitations-would-they-have
+
+CREDITS:
 http://itweek.deviantart.com/art/Knob-Buttons-Toolbar-icons-73463960 for the nice UI icons
+
+KNOWN PROBLEMS:
+ - Input handler: WASD opens FF quick search bar -> set focus to some textfield, while game is on, to prevent this
+ - Input handler: restrict one user input per server tick (latest will be used when ticked)
+ - Chat: prevent unauthorized user chat

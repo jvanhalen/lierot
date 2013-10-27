@@ -37,6 +37,7 @@ var pelialue = function() {
 var GameServer = function(messagehandler) {
     
     var self = this;
+    self.systemtimer = 0;
     self.messageHandler = messagehandler;
     self.messageHandler.attachGameServer(self);
     self.gameSessions = {};
@@ -65,7 +66,7 @@ var GameServer = function(messagehandler) {
     },
     
     self.endGame = function(playerList) {
-        console.log("GameServer.endGame");
+        //console.log("GameServer.endGame");
         var game = playerList[0].game;
         for (var x=0; x<playerList.length; x++) {
             delete self.gameSessions[playerList[x].username];
@@ -91,7 +92,24 @@ var GameServer = function(messagehandler) {
                 console.log("default branch reached at GameServer.userData", msg);
                 break;
         }
+    },
+    
+    self.systemTimer = function() {
+
+    /*
+        // Send user data to clients
+        // TODO: olisiko parempi lähettää kerran sekunnissa, jos paljon käyttäjiä?
+        var msg = messages.message.PLAYER_LIST.new();
+        for(var x=0; x<self.messageBroker.connectedClients.length; x++) {
+            msg.players.push({username: self.messageBroker.connectedClients[x].username,
+                              ingame: self.messageBroker.connectedClients[x].ingame,
+                              rank: 0});
+        }
+        self.broadcast(msg);
+        */
     }
+    
+    var timer = setInterval(self.systemTimer, 1000);
 }
 
 var Peli = function(playerList, messageHandler, gameServer) {
@@ -109,7 +127,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
     self.sessionId = 1;
     self.playerList = playerList;
     
-    console.log(playerList.length);
+    //console.log(playerList.length);
     
     self.alusta = function() {
         console.log("creating new game for", self.playerList.length, "players.");
@@ -136,7 +154,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
     },
 
     self.alustaPelilauta = function() {
-        console.log("alustaPelilauta");
+        //console.log("alustaPelilauta");
         for(var i=0; i<self.pelialue.korkeus*self.pelialue.leveys; i++) {
             self.pelialue.solut[i] = self.pelialue.vari;
         }
@@ -152,7 +170,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
     },
     
     self.asetaRuoat = function() {
-        console.log("asetaRuoat");
+        //console.log("asetaRuoat");
         // Tarkista puuttuuko ruokia
         // Aseta ruoat satunnaiseen kohtaan
         var i = 0;
@@ -162,7 +180,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
 
             // Jos paikka on vapaa, aseta siihen uusi ruoka
             if (self.pelialue.solut[x] == self.pelialue.vari) {
-                console.log("uusi ruoka:", x);
+                //console.log("uusi ruoka:", x);
                 var uusiruoka = new ruoka(x);
                 self.ruoat.push(uusiruoka);
                 self.pelialue.solut[x] = uusiruoka.vari;
@@ -171,7 +189,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
     },
 
     self.poistaRuoka = function(ruutu) {
-        console.log("poistaRuoka", ruutu);
+        //console.log("poistaRuoka", ruutu);
         for (var x=0;x<self.ruoat.length; x++) {
             if (self.ruoat[x].sijainti == ruutu) {
                 self.ruoat.splice(x, 1);
@@ -244,7 +262,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
                 //console.log("suunta", self.madot[x].suunta, " wanhaPaa:", wanhaPaa, "uusiPaa:", uusiPaa);
                 // Tarkista osuimmeko ruokaan (TODO: huomioi erilaiset ruoat, nyt vain ruoat[0])
                 if (self.pelialue.solut[uusiPaa] == self.ruoat[0].vari) {
-                    console.log("food hit, increase worm");
+                    //console.log("food hit, increase worm");
                     // Osuimme, kasvata matoa
                     self.pelialue.solut[uusiPaa] = self.madot[x].vari;
                     self.madot[x].sijainti.push(uusiPaa);
@@ -256,7 +274,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
                 // TODO: miten huomioida eri väriset madot?
                 else if (self.pelialue.solut[uusiPaa] == self.madot[x].vari) {
                     // TODO: lopeta peli (poista mato kentältä vai jätä kentälle?)
-                    console.log("end game");
+                    //console.log("end game");
                     self.madot[x].elossa = false;
                 }
                 else {
@@ -347,7 +365,8 @@ var Peli = function(playerList, messageHandler, gameServer) {
                 break;
             }
         }        
-    }
+    },
+    
     self.endGame = function() {
         // TODO: lopeta peli
         clearInterval(self.ajastin);

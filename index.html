@@ -69,42 +69,57 @@
 </head>
 
 <body onload="lataaLieroT();" onkeypress="return pelisyote(event)">
-<div id="kirjautuminen">
-    <div id="kirjautumisikkuna">
-    <fieldset>
-        <legend><strong>Kirjautuminen</strong></legend>
-        <div id="infoteksti">
-            <p>
-                Käyttäjänimi: <input type="text" id="kayttajanimi" length="10">
-                Salasana: <input type="password" id="salasana" length="10">
-                <input id="kirjaudu_painike" type="submit" value="Kirjaudu" onclick="kirjaudu()">
-                <input id="rekisteroidy_painike" type="submit" value="Rekisteroidy" onclick="rekisteroidy()">
-            </p>
+<div class="container">
+    <div id="kirjautuminen">
+        <div id="kirjautumisikkuna">
+        <fieldset>
+            <legend><strong>Kirjautuminen</strong></legend>
+            <div id="infoteksti">
+                <p>
+                    Käyttäjänimi: <input type="text" id="kayttajanimi" length="10">
+                    Salasana: <input type="password" id="salasana" length="10">
+                    <input id="kirjaudu_painike" type="submit" value="Kirjaudu" onclick="kirjaudu()">
+                    <input id="rekisteroidy_painike" type="submit" value="Rekisteroidy" onclick="rekisteroidy()">
+                </p>
+            </div>
+        </fieldset>
         </div>
-    </fieldset>
     </div>
-</div>
-<div id="pelilauta" onkeypress="return pelisyote(event)">
-    <p>LieroT ei lataudu!?!? Onko JavaScript sallittu selaimessasi?</p>
-</div>
-<div id="chatti" style="width:50%;">
-    <fieldset>
-        <legend><strong>Keskustelu</strong></legend>
-        <div id="keskustelualue" style="height:100px;overflow-Y:auto;">
-            <div id="viestialue"></div>
-        </div>
-        <div id="lahetaviesti">
-            L&auml;het&auml: <input type="text" id="keskusteluviesti" size="40" maxlength="100" onkeypress="return handleKeypress(event)">
-        </div>
-    </fieldset>
-</div>
-<div id="rankinglista" style="width:50%;">
-    <fieldset>
-        <legend><strong>Ranking-tilasto</strong></legend>
-        <div id="ranking" style="height:100px;overflow-Y:auto;">
-            <div id="pelaaja"></div>
-        </div>
-    </fieldset>
+    <div id="kirjautuneet">
+        <fieldset>
+            <legend><strong>Kirjautuneet</strong></legend>
+            <div id="kirjautuneetpelaajat">
+            </div>
+        </fieldset>
+    </div>
+    <div id="rankinglista">
+        <fieldset>
+            <legend><strong>Ranking</strong></legend>
+            <div id="pelaaja">
+            </div>
+        </fieldset>
+    </div>
+    <div id="pelilauta" onkeypress="return pelisyote(event)">
+        <p>Sinun on kirjauduttava aloittaaksesi pelin.</p>
+    </div>
+    <div id="chatti">
+        <fieldset>
+            <legend><strong>Keskustelu</strong></legend>
+            <div id="keskustelualue">
+                <div id="viestialue"></div>
+            </div>
+            <div id="lahetaviesti">
+                L&auml;het&auml: <input type="text" id="keskusteluviesti" size="40" maxlength="100" onkeypress="return handleKeypress(event)">
+            </div>
+        </fieldset>
+    </div>
+    <div id="palvelintiedot">
+        <fieldset>
+            <legend><strong>Palvelimen loki</strong></legend>
+            <div id="palvelinloki">
+            </div>
+        </fieldset>
+    </div>
 </div>
 </body>
 </html>

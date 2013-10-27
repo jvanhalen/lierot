@@ -2,6 +2,8 @@ var MessageBroker = require('./server/messagebroker');
 var MessageHandler = require('./server/messagehandler');
 var DatabaseProxy = require('./server/databaseproxy');
 var GameServer = require('./server/game');
+var messages = require('./common/messages');
+var os = require('os'); // For system load avg
 
 
 var Server = function() {
@@ -60,7 +62,31 @@ var Server = function() {
         self.messageHandler.attachBroker(self.messageBroker);
 
         console.log("server started");
+    },
+    
+    self.statistics = function() {
+        var msg = messages.message.SERVER_STATS.new();
+        msg.systemload = os.loadavg();
+        msg.uptime = process.uptime();
+        msg.memusage = process.memoryUsage();
+        msg.system = os.hostname() + ": " + os.type() + ', ' + os.platform() + ', ' + os.arch();
+        msg.connectedusers = self.messageBroker.connected;
+        msg.authenticatedusers = self.messageBroker.authenticated,
+        msg.totalusers = 0; // TODO: query database
+        msg.userlist = [{username: "username",
+                    ingame: "true/false"}],
+        
+        console.log("mem: " + (msg.memusage.rss/1000000).toFixed(2) + "/" +
+                              (msg.memusage.heapTotal/1000000).toFixed(2) + "/" +
+                              (msg.memusage.heapUsed/1000000).toFixed(2) +
+                    " cpu: " + msg.systemload[0].toPrecision(2) + "/" +
+                              msg.systemload[1].toPrecision(2) + "/" +
+                              msg.systemload[2].toPrecision(2) +
+                    " users: " + msg.connectedusers + "/" + msg.authenticatedusers + "/" + msg.totalusers + " (c/a/t)");
+        self.messageHandler.broadcast(msg);
     }
+    // Poll some statistics
+    self.ajastin = setInterval(self.statistics, 10000);
 
     // Aseta palvelimen sisäiset muuttujat
     self.setupVariables();

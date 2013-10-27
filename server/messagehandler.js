@@ -9,7 +9,7 @@ var MessageHandler = function() {
     self.gameServer = undefined;
 
     self.receive = function(from, data) {
-        console.log(data);
+        //console.log(data);
 
         if (data.name) {
             switch (data.name) {
@@ -21,13 +21,13 @@ var MessageHandler = function() {
                         self.send(from, msg);
                     }
                     else {
-                        console.log("client requested authentication:", data.username, data.passwordhash);
+                        //console.log("client requested authentication:", data.username, data.passwordhash);
                         self.databaseProxy.getLogin(from, data);
                     }
                     break;
 
                 case 'REG_REQ':
-                    console.log("client requested registration:", data.username, data.passwordhash);
+                    //console.log("client requested registration:", data.username, data.passwordhash);
                     self.databaseProxy.newUserAccount(from, data);
                     break;
 
@@ -52,6 +52,10 @@ var MessageHandler = function() {
                     break;
                 
                 case 'DISCONNECT_REQ':
+                    // Notify GameServer
+                    self.gameServer.userData(from, data);
+                    // Send update to clients
+                    self.removeFromPlayerList(data.username);
                     console.log("DISCONNECT_REQ");
                     break;
                 
@@ -88,7 +92,7 @@ var MessageHandler = function() {
     },
 
     self.handleDatabaseResponse = function(from, msgname, result) {
-        console.log("MessageHandler: handleDatabaseResponse", msgname, result);
+        //console.log("MessageHandler: handleDatabaseResponse", msgname, result);
 
         switch(msgname) {
             case 'REG_REQ':
@@ -112,8 +116,14 @@ var MessageHandler = function() {
     },
     
     self.attachClient = function(websocket, username) {
-        console.log("MessageHandler.attachClient:", username)
+        //console.log("MessageHandler.attachClient:", username)
         self.messageBroker.attachClient(websocket, username);
+        
+        // Send full playerlist to the authenticated user
+        self.sendFullPlayerList(websocket, username);
+        
+        // Send updates to other authenticated users
+        self.addToPlayerList(username);
     },
     
     self.isAuthenticated = function(from, msg) {
@@ -130,7 +140,80 @@ var MessageHandler = function() {
         }
         
         return false;
-    }
+    },
+    
+    self.sendFullPlayerList = function(websocket, username) {
+        console.log("sending full player list to", username);
+        // Send full player list to new players and
+        // update to already connected clients (containing only the previously connected user)
+        var msg = messages.message.PLAYER_LIST.new();
+        msg.type = "full";
+        
+        for(var item in self.messageBroker.connectedClients) {
+            if(undefined !== self.messageBroker.connectedClients[item].username) {
+                console.log("username is set:", self.messageBroker.connectedClients[item].username);
+                var ingame = false;
+                if (undefined === self.gameServer.gameSessions[self.messageBroker.connectedClients[item].username]) {
+                    ingame = false;
+                }
+                else {
+                    ingame = true;
+                }
+                
+                var player = {username: self.messageBroker.connectedClients[item].username,
+                              authenticated: true,
+                              ingame: ingame,
+                              rank: 0}
+                              
+                msg.players.push(player);
+            }
+        }
+        self.messageBroker.broadcast(msg);
+    },
+    
+    self.removeFromPlayerList = function(username) {
+        console.log("sending player list update 'remove'");
+        var msg = messages.message.PLAYER_LIST.new();
+        msg.type = "update";
+    
+        var ingame = false;
+        if (undefined === self.gameServer.gameSessions[username]) {
+            ingame = false;
+        }
+        else {
+            ingame =  true;
+        }
+    
+        var player = {username: username,
+                      authenticated: false,
+                      ingame: ingame,
+                      rank: 0}
+                      
+        msg.players.push(player);
+        self.messageBroker.broadcast(msg);
+    },
+
+    self.addToPlayerList = function(username) {
+        console.log("sending player list update 'add'");
+        var msg = messages.message.PLAYER_LIST.new();
+        msg.type = "update";
+        
+        var ingame = false;
+        if (undefined === self.gameServer.gameSessions[username]) {
+            ingame = false;
+        }
+        else {
+            ingame = true;
+        }
+        
+        var player = {username: username,
+                      authenticated: true,
+                      ingame: ingame,
+                      rank: 0}
+                      
+        msg.players[0] = player;
+        self.broadcast(msg);
+    }    
 }
 
 module.exports = MessageHandler;

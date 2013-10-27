@@ -65,12 +65,12 @@ var DatabaseProxy = function() {
                         self.messageHandler.send(from, resp);
                         return;
                     }
-                console.log("rows:", rows, "cols:", cols);
+                //console.log("rows:", rows, "cols:", cols);
                 if(rows[0] !== undefined) {
                     if(rows[0].PasswordHash == data.passwordhash) {
                         resp.response = "OK";
+                        self.messageHandler.attachClient(from, data.username);
                     }
-                    self.messageHandler.attachClient(from, data.username);
                 }
                 self.messageHandler.send(from, resp);
             });

@@ -1,3 +1,4 @@
+var messages = require('../common/messages');
 
 var MessageBroker = function(serverapp) {
 
@@ -6,6 +7,8 @@ var MessageBroker = function(serverapp) {
 
     self.connectedClients  = {};
     self.serverapp = serverapp;
+    self.connected = 0;
+    self.authenticated = 0;
 
     self.init = function() {
         console.log("MessageBroker: initializing websocket");
@@ -14,28 +17,39 @@ var MessageBroker = function(serverapp) {
         self.wss = new WebSocketServer({server: self.serverapp});
 
         self.wss.on('connection', function(websocket) {
-            //console.log("MessageBroker: client connected", websocket._socket.remoteAddress, ":", websocket._socket.remotePort);
+            //
+            
+            console.log("MessageBroker: client connected", websocket._socket.remoteAddress, ":", websocket._socket.remotePort);
+            self.connected++;
 
             // Talleta
-            self.connectedClients[websocket._socket.remotePort] = {websocket: websocket, username: undefined, ingame: false};  // Mark username: undefined while client is not authorized
-            //console.log(self.connectedClients[websocket._socket.remotePort]);
+            self.connectedClients[websocket._socket.remotePort] = {websocket: websocket, username: undefined, ingame: false};  // Mark username: undefined while client is not authenticated
+
             // YHTEYDEN KATKETESSA
             websocket.on('close', function() {
                 console.log('MessageBroker: client disconnected', websocket._socket._peername.address, ":", websocket._socket._peername.port, "(" + self.connectedClients[websocket._socket._peername.port].username + ")");
-                if (self.connectedClients[websocket._socket._peername.port].ingame == true)  {
-                    // Notify GameServer about the disconnection
-                    var msg = messages.message.DISCONNECT_REQ.new();
-                    msg.username = self.connectedClients[websocket._socket._peername.port].username;
-                    
-                    self.receive(self.connectedClients[websocket._socket._peername.port].websocket, msg);
+                
+                // Notify other server objects about the disconnection
+                var msg = messages.message.DISCONNECT_REQ.new();
+                msg.username = self.connectedClients[websocket._socket._peername.port].username;
+                
+                // Check if the user has authenticated or not
+                if (self.connectedClients[websocket._socket._peername.port].username !== undefined)  {
+                    self.authenticated--;
                 }
+
+                self.connected--;
+
                 delete self.connectedClients[websocket._socket._peername.port];
+                // call receive() AFTER delete
+                self.receive(undefined, msg);
+
             });
 
             // VIESTI VASTAANOTETTAESSA
             websocket.on('message', function(data, flags) {
 
-                // Tarkista datan tyyppi ennen parsimista - muuten palvelin kaatuu
+                // TODO: Tarkista datan tyyppi ennen parsimista - muuten palvelin kaatuu
                 data = JSON.parse(data);
 
                 // Käsittele kirjautuneilta käyttäjiltä kaikki viestit ja kirjautumattomilta käyttäjiltä vain AUTH_REQ ja REG_REQ
@@ -65,7 +79,7 @@ var MessageBroker = function(serverapp) {
         //console.log("MessageBroker.send", msg);
         //console.log("sending to port", to._socket._peername.port);
         // JSON vai BSON ?
-        if (undefined !== to) {
+        if (undefined !== to && null != to) {
             if (undefined !== self.connectedClients[to._socket._peername.port]) {
                 to.send(JSON.stringify(msg));
             }
@@ -76,9 +90,9 @@ var MessageBroker = function(serverapp) {
     },
 
     self.broadcast = function(data) {
-        console.log("broadcast data:", data);
+        //console.log("broadcast data:", data.name);
         for(var key in self.connectedClients) {
-            // Broadcast to authorized clients only
+            // Broadcast to authenticated clients only
             if(self.connectedClients[key].username) {
                 self.connectedClients[key].websocket.send(JSON.stringify(data));
             }
@@ -86,10 +100,13 @@ var MessageBroker = function(serverapp) {
     },
 
     self.attachClient = function(websocket, username) {
+        console.log("attach client:", username);
+        
         // Talleta websocket ja sitä vastaava käyttäjänimi
+        self.authenticated++;
         self.connectedClients[websocket._socket._peername.port].websocket = websocket;
         self.connectedClients[websocket._socket._peername.port].username = username;
-    }
+    },
 
     self.attachHandler = function(handler) {
         self.messageHandler = handler;

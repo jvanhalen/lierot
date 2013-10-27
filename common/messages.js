@@ -11,7 +11,6 @@
                 text: null       // Viestin sisältö
             },
             new: function() {
-                // Luo uusi kopio tästä viestistä
                 return JSON.parse(JSON.stringify(this.message));
             }
         },
@@ -40,7 +39,9 @@
         QUEUE_MATCH: {
             message: {
                 name: "QUEUE_MATCH",
-                username: "username"
+                username: "username",
+                matchid: "uuid",
+                players: [{}] // Usernames and their responses {username: "username", response: "OK/NOK"}
             },
             new: function() {
                 return JSON.parse(JSON.stringify(this.message));
@@ -53,7 +54,6 @@
                 passwordhash: null  // SHA1-koodattu salasanatiiviste (lue html-lomakkeesta ja generoi SHA1-tiiviste)
             },
             new: function() {
-                // Luo uusi kopio tästä viestistä
                 return JSON.parse(JSON.stringify(this.message));
             }
         },
@@ -63,7 +63,6 @@
                 response: "OK/NOK"
             },
             new: function() {
-                // Luo uusi kopio tästä viestistä
                 return JSON.parse(JSON.stringify(this.message));
             }
         },
@@ -74,7 +73,6 @@
                 passwordhash: null  // SHA1-koodattu salasanatiiviste (lue html-lomakkeesta ja generoi SHA1-tiiviste)
             },
             new: function() {
-                // Luo uusi kopio tästä viestistä
                 return JSON.parse(JSON.stringify(this.message));
             }
         },
@@ -84,7 +82,6 @@
                 response: "OK/NOK"
             },
             new: function() {
-                // Luo uusi kopio tästä viestistä
                 return JSON.parse(JSON.stringify(this.message));
             }
         },
@@ -113,7 +110,6 @@
                 value: 0    // Satunnainen merkkijono, vastaus samalla numerolla
             },
             new: function() {
-                // Luo uusi kopio tästä viestistä
                 return JSON.parse(JSON.stringify(this.message));
             }
         },
@@ -123,7 +119,34 @@
                 value: 0      // Palvelimen generoima merkkijono, vastaus samalla merkkijonolla
             },
             new: function() {
-                // Luo uusi kopio tästä viestistä
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },
+        SERVER_STATS: {
+            message: {
+                name: "SERVER_STATS",
+                uptime: "string",
+                systemload: "string",
+                memusage: "string",
+                system: "string",
+                connectedusers: 0,
+                authenticated: 0,
+                totalusers: 0
+            },
+            new: function() {
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },
+        PLAYER_LIST: {
+            message: {
+                name: "PLAYER_LIST",
+                type: "full/update",   // Always check whether this is an update or a full list
+                players: [{username: "Wobotti",
+                          ingame: "true",
+                          authenticated: "true",    // false if user disconnected, otherwise true
+                          rank: 0}]
+            },
+            new: function() {
                 return JSON.parse(JSON.stringify(this.message));
             }
         }
