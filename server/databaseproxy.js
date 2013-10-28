@@ -141,7 +141,7 @@ var DatabaseProxy = function() {
      Palauttaa MessageHandlerin kautta: tulokset
      ====================================================================================  */
 
-    self.newUserAccount = function(from, data) {
+    self.newUserAccount = function(socket, data) {
 
         var resp = messages.message.REG_RESP.new();
         resp.response="NOK";
@@ -158,11 +158,11 @@ var DatabaseProxy = function() {
                 ).
                 execute(function(error, result) {
                     if (error) {
-                        self.messageHandler.send(from, resp);
+                        socket.send(resp);
                         return;
                     }
                     resp.response="OK";
-                    self.messageHandler.send(from, resp);
+                    socket.send(resp);
                 });
         });
 
