@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="client/style.css">
     <script type="text/javascript">
         function lataaLieroT() {
-            peli = new Peli();
+            game = new Peli();
         }
 
         function kirjaudu() {
@@ -21,7 +21,8 @@
                 var msg = messages.message.AUTH_REQ.new();
                 msg.username = document.getElementById("kayttajanimi").value;
                 msg.passwordhash = Sha1.hash(document.getElementById("salasana").value);
-                peli.messageHandler.send(msg);
+                game.messageHandler.send(msg);
+                game.messageHandler.username = msg.username;
             }
         }
 
@@ -32,36 +33,39 @@
                 var msg = messages.message.REG_REQ.new();
                 msg.username = document.getElementById("kayttajanimi").value;
                 msg.passwordhash = Sha1.hash(document.getElementById("salasana").value);
-                peli.messageHandler.send(msg);
+                game.messageHandler.send(msg);
             }
         }
-        
+
         function poistu() {
             // TODO: lähetä LOGOUT-viesti palvelimelle?
             location.reload();
+        }
+
+        function challenge(username) {
+            game.challenge(username);
         }
 
         function handleKeypress(event) {
             event.preventDefault;
             console.log("event.which:", event.which, "event.keyCode:", event.keyCode, "event.charCode:", event.charCode);
             if (event.which == 13 || event.keyCode == 13) {
-                // Lähetä tekstirimpsu jos sen pituus > 0
+                // Lähetä tekstirimpsu jos sen length > 0
                 var chatmsg = document.getElementById('keskusteluviesti').value;
                 if (chatmsg) {
                     var msg = messages.message.CHAT_SYNC.new();
-                    msg.username = peli.messageHandler.getUsername();
+                    msg.username = game.messageHandler.getUsername();
                     msg.text = chatmsg;
-                    peli.messageHandler.send(msg);
+                    game.messageHandler.send(msg);
                     document.getElementById('keskusteluviesti').value = "";
                 }
             }
             return true; // Huom! return false; ei lisää merkkiä textboxiin
         }
-        
-        function pelisyote(event) {
 
-            if (true == peli.onKaynnissa()) {
-                peli.kasittelePainallus(event);
+        function pelisyote(event) {
+            if (true == game.isRunning()) {
+                game.kasittelePainallus(event);
             }
             return true; // Huom! return false; ei lisää merkkiä textboxiin
         }
@@ -73,11 +77,11 @@
     <div id="kirjautuminen">
         <div id="kirjautumisikkuna">
         <fieldset>
-            <legend><strong>Kirjautuminen</strong></legend>
+            <legend><strong>Login</strong></legend>
             <div id="infoteksti">
                 <p>
-                    Käyttäjänimi: <input type="text" id="kayttajanimi" length="10">
-                    Salasana: <input type="password" id="salasana" length="10">
+                    Username: <input type="text" id="kayttajanimi" length="10">
+                    Password: <input type="password" id="salasana" length="10">
                     <input id="kirjaudu_painike" type="submit" value="Kirjaudu" onclick="kirjaudu()">
                     <input id="rekisteroidy_painike" type="submit" value="Rekisteroidy" onclick="rekisteroidy()">
                 </p>
@@ -87,7 +91,7 @@
     </div>
     <div id="kirjautuneet">
         <fieldset>
-            <legend><strong>Kirjautuneet</strong></legend>
+            <legend><strong>Active</strong></legend>
             <div id="kirjautuneetpelaajat">
             </div>
         </fieldset>
@@ -104,18 +108,18 @@
     </div>
     <div id="chatti">
         <fieldset>
-            <legend><strong>Keskustelu</strong></legend>
+            <legend><strong>Chat</strong></legend>
             <div id="keskustelualue">
                 <div id="viestialue"></div>
             </div>
             <div id="lahetaviesti">
-                L&auml;het&auml: <input type="text" id="keskusteluviesti" size="40" maxlength="100" onkeypress="return handleKeypress(event)">
+                Send<input type="text" id="keskusteluviesti" size="40" maxlength="100" onkeypress="return handleKeypress(event)">
             </div>
         </fieldset>
     </div>
     <div id="palvelintiedot">
         <fieldset>
-            <legend><strong>Palvelimen loki</strong></legend>
+            <legend><strong>Server log</strong></legend>
             <div id="palvelinloki">
             </div>
         </fieldset>

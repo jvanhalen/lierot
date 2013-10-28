@@ -45,34 +45,34 @@ var DatabaseProxy = function() {
 
     },
 
-    self.getLogin = function(from, data) {
-
+    self.getLogin = function(socket, data) {
         var resp = messages.message.AUTH_RESP.new();
         resp.response="NOK";
+        resp.username = data.username;
 
         new mysql.Database(mydb).connect(function(error) {
             if (error) {
-                self.handleResponse(from, 'connectionerror', {'error':error});
-                self.messageHandler.send(from, resp);
+                socket.send(JSON.stringify(resp));
                 return;
             }
             this.query().
-                select('PasswordHash, ID, UserStatus').
+                select('PasswordHash, ID, UserStatus, UserName').
                 from('UserAccount').
                 where('UserName = ?', [ data.username ]).
                 execute(function(error, rows, cols) {
                     if (error) {
-                        self.messageHandler.send(from, resp);
+                        socket.send(JSON.stringify(resp));
                         return;
                     }
-                //console.log("rows:", rows, "cols:", cols);
                 if(rows[0] !== undefined) {
+                    //console.log(rows[0]);
                     if(rows[0].PasswordHash == data.passwordhash) {
                         resp.response = "OK";
-                        self.messageHandler.attachClient(from, data.username);
+                        resp.username = rows[0].UserName;
+                        self.messageHandler.connectClient(socket, rows[0].UserName);
                     }
                 }
-                self.messageHandler.send(from, resp);
+                socket.send(JSON.stringify(resp));
             });
         });
     },

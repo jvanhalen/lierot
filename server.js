@@ -63,7 +63,7 @@ var Server = function() {
 
         console.log("server started");
     },
-    
+
     self.statistics = function() {
         var msg = messages.message.SERVER_STATS.new();
         msg.systemload = os.loadavg();
@@ -74,8 +74,8 @@ var Server = function() {
         msg.authenticatedusers = self.messageBroker.authenticated,
         msg.totalusers = 0; // TODO: query database
         msg.userlist = [{username: "username",
-                    ingame: "true/false"}],
-        
+                         ingame: false}],
+
         console.log("mem: " + (msg.memusage.rss/1000000).toFixed(2) + "/" +
                               (msg.memusage.heapTotal/1000000).toFixed(2) + "/" +
                               (msg.memusage.heapUsed/1000000).toFixed(2) +
@@ -86,7 +86,7 @@ var Server = function() {
         self.messageHandler.broadcast(msg);
     }
     // Poll some statistics
-    self.ajastin = setInterval(self.statistics, 10000);
+    self.timer = setInterval(self.statistics, 10000);
 
     // Aseta palvelimen sisäiset muuttujat
     self.setupVariables();

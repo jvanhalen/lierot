@@ -5,10 +5,12 @@ var MessageBroker = function(serverapp) {
     // Määrittele scope
     var self = this;
 
-    self.connectedClients  = {};
+    self.clients  = {}; // Index with username
     self.serverapp = serverapp;
     self.connected = 0;
     self.authenticated = 0;
+    self.skipped = 0;
+    self.receivedMessages = 0;
 
     self.init = function() {
         console.log("MessageBroker: initializing websocket");
@@ -18,46 +20,57 @@ var MessageBroker = function(serverapp) {
 
         self.wss.on('connection', function(websocket) {
             //
-            
-            console.log("MessageBroker: client connected", websocket._socket.remoteAddress, ":", websocket._socket.remotePort);
-            self.connected++;
 
-            // Talleta
-            self.connectedClients[websocket._socket.remotePort] = {websocket: websocket, username: undefined, ingame: false};  // Mark username: undefined while client is not authenticated
+            console.log("MessageBroker: client connected to port", websocket._socket.remotePort);
+            websocket.username = null;
+            self.connected++;
 
             // YHTEYDEN KATKETESSA
             websocket.on('close', function() {
-                console.log('MessageBroker: client disconnected', websocket._socket._peername.address, ":", websocket._socket._peername.port, "(" + self.connectedClients[websocket._socket._peername.port].username + ")");
+                console.log("MessageBroker: client " + websocket._socket.remotePort + " disconnected (" + websocket.username +")");
+                var username = websocket.username;
+                
+                // Set websocket to null
+                websocket.username = null;
                 
                 // Notify other server objects about the disconnection
-                var msg = messages.message.DISCONNECT_REQ.new();
-                msg.username = self.connectedClients[websocket._socket._peername.port].username;
-                
-                // Check if the user has authenticated or not
-                if (self.connectedClients[websocket._socket._peername.port].username !== undefined)  {
+                if (username != null) {
+                    console.log(username);
+                    var msg = messages.message.DISCONNECT_REQ.new();
+                    msg.username = username;
+                    self.receive(username, msg);
+
                     self.authenticated--;
                 }
-
                 self.connected--;
-
-                delete self.connectedClients[websocket._socket._peername.port];
-                // call receive() AFTER delete
-                self.receive(undefined, msg);
-
             });
 
             // VIESTI VASTAANOTETTAESSA
             websocket.on('message', function(data, flags) {
+                self.receivedMessages++;    // Possible overflow?
 
                 // TODO: Tarkista datan tyyppi ennen parsimista - muuten palvelin kaatuu
                 data = JSON.parse(data);
 
-                // Käsittele kirjautuneilta käyttäjiltä kaikki viestit ja kirjautumattomilta käyttäjiltä vain AUTH_REQ ja REG_REQ
-                if(self.connectedClients[websocket._socket._peername.port].username !== undefined || data.name == "AUTH_REQ" || data.name == "REG_REQ") {
-                    self.receive(websocket, data);
+                // Separate authentication and registration messages from others
+                if(data.name == "AUTH_REQ" || data.name == "REG_REQ" && websocket.username == null) {
+                    self.messageHandler.authenticate(websocket, data);
+                }
+                else if (websocket.username != null) {
+                    // Handle disconnect here, then delegate
+                    if (data.name == "DISCONNECT_REQ") {
+                        self.disconnectClient(websocket.username);
+                    }
+                    // User has authenticated, proceed to message handling
+                    self.receive(websocket.username, data);
                 }
                 else {
-                    console.log("skipped", data);
+                    // Skip message
+                    //console.log("skipped", data);
+                    self.skipped++;
+                    if (self.skipped % 1) { // Change 1 to 1000 in production
+                        console.log("MessageBroker has skipped", self.skipped, "messages");
+                    }
                 }
             });
         });
@@ -76,38 +89,41 @@ var MessageBroker = function(serverapp) {
     },
 
     self.send = function(to, msg) {
-        //console.log("MessageBroker.send", msg);
-        //console.log("sending to port", to._socket._peername.port);
-        // JSON vai BSON ?
+        //console.log("MessageBroker: send to", to + ":", msg);
         if (undefined !== to && null != to) {
-            if (undefined !== self.connectedClients[to._socket._peername.port]) {
-                to.send(JSON.stringify(msg));
+            var open = require('ws').OPEN;
+            if (self.clients[to].readyState == open) {
+                self.clients[to].send(JSON.stringify(msg));
             }
-        }
-        else {
-            console.log("client already disconnected:", to._socket._peername.port);
         }
     },
 
     self.broadcast = function(data) {
         //console.log("broadcast data:", data.name);
-        for(var key in self.connectedClients) {
-            // Broadcast to authenticated clients only
-            if(self.connectedClients[key].username) {
-                self.connectedClients[key].websocket.send(JSON.stringify(data));
+        for(var key in self.clients) {
+            var open = require('ws').OPEN;
+            if (self.clients[key].readyState == open) {
+                self.clients[key].send(JSON.stringify(data));
             }
         }
     },
 
-    self.attachClient = function(websocket, username) {
-        console.log("attach client:", username);
-        
-        // Talleta websocket ja sitä vastaava käyttäjänimi
+    self.connectClient = function(websocket, username) {
+        //console.log("MessageBroker: connected client", username, websocket);
+        // Add username to websocket
+        websocket.username = username;
+        self.clients[username] = websocket;
         self.authenticated++;
-        self.connectedClients[websocket._socket._peername.port].websocket = websocket;
-        self.connectedClients[websocket._socket._peername.port].username = username;
     },
-
+    
+    self.disconnectClient = function(username) {
+        console.log("attach client:", username);
+        // Add username to websocket
+        self.clients[username].username = null;
+        self.authenticated--;
+        self.connected--;
+    },
+    
     self.attachHandler = function(handler) {
         self.messageHandler = handler;
         console.log("MessageBroker: MessageHandler attached");

@@ -1,6 +1,6 @@
-var MessageHandler = function(peli) {
+var MessageHandler = function(game) {
     var self = this;
-    self.peli = peli;
+    self.game = game;
     self.username = undefined;
     self.messageBroker = undefined;
 
@@ -17,13 +17,13 @@ var MessageHandler = function(peli) {
 
             case 'AUTH_RESP':
                 //console.log(msg.name, msg.response);
-                if(msg.response == "OK") {
-                    self.setUsername(document.getElementById('kayttajanimi').value);
+                if(msg.response == "OK" && msg.username) {
+                    self.setUsername(msg.username);
                     document.getElementById('infoteksti').style.color = "black";
                     document.getElementById('infoteksti').innerHTML = "Kirjauduit käyttäjänä <strong>" +
-                    document.getElementById('kayttajanimi').value + "</strong>";
+                    msg.username + "</strong>";
                     document.getElementById('infoteksti').innerHTML += '<br /><input id="poistu_painike" type="submit" value="Poistu" onclick="poistu();">';
-                    self.peli.alustaPeli(null);
+                    self.game.alustaPeli(null);
                 }
                 else {
                     var tmp = document.getElementById('infoteksti').innerHTML;
@@ -35,17 +35,17 @@ var MessageHandler = function(peli) {
                 break;
 
             case 'MATCH_SYNC':
-                self.peli.paivitaTilanne(msg);
+                self.game.updateMatch(msg);
                 break;
 
             case 'REG_RESP':
                 console.log(msg.name, msg.response);
                 break;
-            
+
             case 'PLAYER_LIST':
                 self.updatePlayerList(msg);
                 break;
-            
+
             case 'SERVER_STATS':
                 document.getElementById('palvelinloki').innerHTML = "";
                 document.getElementById('palvelinloki').innerHTML += "<strong>System:</strong> " + msg.system + "<br />";
@@ -53,6 +53,14 @@ var MessageHandler = function(peli) {
                 document.getElementById('palvelinloki').innerHTML += "<strong>Mem usage: </strong> " + (msg.memusage.rss/1000000).toFixed(2) + "/" +  (msg.memusage.heapTotal/1000000).toFixed(2) + "/" + (msg.memusage.heapUsed/1000000).toFixed(2) + " (rss/total/used in MB)<br />";
                 document.getElementById('palvelinloki').innerHTML += "<strong>Uptime: </strong> " + Math.round(msg.uptime) + " seconds<br />";
                 document.getElementById('palvelinloki').innerHTML += "<strong>Users: </strong> " + msg.authenticatedusers + "/" + msg.connectedusers + "<br />";
+                break;
+
+            case 'CHALLENGE_REQ':
+                self.handleChallengeRequest(msg);
+                break;
+
+            case 'CHALLENGE_RESP':
+                self.handleChallengeResponse(msg);
                 break;
 
             default:
@@ -64,15 +72,16 @@ var MessageHandler = function(peli) {
     self.init = function() {
         console.log("MessageHandler started");
     },
-    
+
     self.send = function(data) {
         self.messageBroker.send(data);
     },
-    
+
     self.setUsername = function(username) {
         self.username = username;
+        self.game.setUsername(username);
     },
-    
+
     self.getUsername = function() {
         return self.username;
     },
@@ -80,30 +89,29 @@ var MessageHandler = function(peli) {
     self.attachBroker = function(messageBroker) {
         self.messageBroker = messageBroker;
     },
-    // ty guys @ http://stackoverflow.com/questions/5066925/javascript-only-sort-a-bunch-of-divs
-    // From example: http://jsfiddle.net/fkling/nXkDp/
+
     self.sortDivs = function(container) {
-        console.log("sorting", container);
+        //console.log("sorting", container);
         var toSort = container.children;
-        console.log("toSort:", toSort);
+        //console.log("toSort:", toSort);
         toSort = Array.prototype.slice.call(toSort, 0);
-        
+
         toSort.sort(function(a, b) {
             var aSort = a.id.toLowerCase(), //Text is the field on which we make sort
                 bSort = b.id.toLowerCase();
-            console.log(aSort, ":", bSort);
+            //console.log(aSort, ":", bSort);
             if (aSort === bSort) return 0;
             return aSort > bSort ? 1 : -1;
         });
-        
+
         var parent = container;
         parent.innerHTML = "";
-        
+
         for(var i=0, l = toSort.length; i<l; i++) {
             parent.appendChild(toSort[i]);
         }
     },
-    
+
     self.updatePlayerList = function(msg) {
         switch(msg.type) {
             case 'update':
@@ -112,12 +120,15 @@ var MessageHandler = function(peli) {
                     // Update player entry
                     if (msg.players[item].authenticated == true || msg.players[item].authenticated == "true") {
                         var pre = '<div id="' + msg.players[item].username +'">';
-                        var player = msg.players[item].username;
-                        if (msg.players[item].ingame == false) {
-                            player += ' <a href="#" title="haasta">x</a>';
+                        var player = "";
+                        if (msg.players[item].ingame == false && msg.players[item].username != self.getUsername()) {
+                            player += ' <a href="#" title="haasta" onclick="challenge(\''+msg.players[item].username+'\')">'+ msg.players[item].username + '</a>';
+                        }
+                        else {
+                            player += msg.players[item].username;
                         }
                         post = '</div>';
-                        
+
                         if (null == document.getElementById(msg.players[item].username)) {
                             // div does not exist, create it
                             console.log("create new entry", msg.players[item].username);
@@ -139,25 +150,46 @@ var MessageHandler = function(peli) {
                     }
                 }
                 break;
-            
+
             case 'full':
                 console.log(msg.type, "update");
                 document.getElementById('kirjautuneetpelaajat').innerHTML = "";
                 for(var item in msg.players) {
-                    var player = '<div id="' + msg.players[item].username +'">' + msg.players[item].username;
-                    if (msg.players[item].ingame == false) {
-                        player += ' <a href="#" title="haasta">x</a>';
+                    var player = '<div id="' + msg.players[item].username +'">';
+                    if (msg.players[item].ingame == false && msg.players[item].username.toLowerCase() != self.getUsername().toLowerCase()) {
+                        player += ' <a href="#" title="haasta" onclick="challenge("'+msg.players[item].username+'")">' + msg.players[item].username + '</a>';
+                    }
+                    else {
+                        player += msg.players[item].username;
                     }
                     player += '</div>';
                     document.getElementById('kirjautuneetpelaajat').innerHTML += player;
                 }
                 break;
-            
+
             default:
                 console.log("MessageHandler.updatePlayerList: default branch reached");
-                break;            
+                break;
         }
         self.sortDivs(document.getElementById('kirjautuneetpelaajat'));
+    },
+
+    self.handleChallengeRequest = function(msg) {
+        console.log("handleChallengeRequest from", msg.challenger);
+        var resp = messages.message.CHALLENGE_RESP.new();
+        if(confirm("Accept challenge from", msg.username)) {
+            resp.response = "OK";
+        }
+        else {
+            resp.response = "NOK";
+        }
+        resp.challenger = msg.challenger;
+        resp.challengee = msg.challengee;
+        self.send(resp);
+    },
+
+    self.handleChallengeResponse = function(msg) {
+        console.log(msg);
     }
 
     self.init();

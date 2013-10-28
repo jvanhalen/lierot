@@ -30,7 +30,7 @@
             message: {
                 name: "USER_INPUT",
                 username: "username",
-                direction: "vasen/oikea/ylos/alas"
+                direction: "left/right/up/down"
             },
             new: function() {
                 return JSON.parse(JSON.stringify(this.message));
@@ -50,7 +50,7 @@
         REG_REQ: {
             message: {
                 name: "REG_REQ",   // Client lähettää tämän palvelimelle
-                username: null,     // Clientin kyättäjänimi (lue html-lomakkeesta)
+                username: null,     // Clientin kyättäjäname (lue html-lomakkeesta)
                 passwordhash: null  // SHA1-koodattu salasanatiiviste (lue html-lomakkeesta ja generoi SHA1-tiiviste)
             },
             new: function() {
@@ -69,7 +69,7 @@
         AUTH_REQ: {
             message: {
                 name: "AUTH_REQ",   // Client lähettää tämän palvelimelle
-                username: null,     // Clientin käyttäjänimi (lue html-lomakkeesta)
+                username: null,     // Clientin käyttäjäname (lue html-lomakkeesta)
                 passwordhash: null  // SHA1-koodattu salasanatiiviste (lue html-lomakkeesta ja generoi SHA1-tiiviste)
             },
             new: function() {
@@ -79,6 +79,7 @@
         AUTH_RESP: {
             message: {
                 name: "AUTH_RESP",  // Palvelin vastaa clientille
+                username: "username_from_database",
                 response: "OK/NOK"
             },
             new: function() {
@@ -142,9 +143,30 @@
                 name: "PLAYER_LIST",
                 type: "full/update",   // Always check whether this is an update or a full list
                 players: [{username: "Wobotti",
-                          ingame: "true",
-                          authenticated: "true",    // false if user disconnected, otherwise true
+                          ingame: true,
+                          authenticated: true,    // false if user disconnected, otherwise true
                           rank: 0}]
+            },
+            new: function() {
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },
+        CHALLENGE_REQ: {
+            message: {
+                name: "CHALLENGE_REQ",
+                challenger: "username",
+                challengee: "username"
+            },
+            new: function() {
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },
+        CHALLENGE_RESP: {
+            message: {
+                name: "CHALLENGE_RESP",
+                challenger: "username",
+                challengee: "username",
+                response: "OK/NOK"
             },
             new: function() {
                 return JSON.parse(JSON.stringify(this.message));
