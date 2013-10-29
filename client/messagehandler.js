@@ -180,6 +180,7 @@ var MessageHandler = function(game) {
 
     self.handleChallengeRequest = function(msg) {
         // Pop a dialog
+        // TODO: support for multiple dialogs
         //document.getElementById('haasteajastin').innerHTML = "10";
 
         var audio = document.getElementById('challenge_request_audio');
