@@ -184,7 +184,7 @@ var MessageHandler = function(game) {
         //document.getElementById('haasteajastin').innerHTML = "10";
 
         var audio = document.getElementById('challenge_request_audio');
-        audio.volume = 0.4;
+        audio.volume = 0.6;
         audio.play();
 
         console.log("handleChallengeRequest", msg);
@@ -206,8 +206,8 @@ var MessageHandler = function(game) {
         var resp = messages.message.CHALLENGE_RESP.new();
 
         resp.response = "OK";
-        resp.challenger = self.getUsername();
-        resp.challengee = challenger;
+        resp.challenger = challenger;
+        resp.challengee = self.getUsername();
         self.send(resp);
         document.getElementById('haastelaatikko').style.visibility="hidden";
     },
@@ -217,8 +217,8 @@ var MessageHandler = function(game) {
         console.log("handleChallengeRequest from", challenger);
         var resp = messages.message.CHALLENGE_RESP.new();
         resp.response = "NOK";
-        resp.challenger = self.getUsername();
-        resp.challengee = challenger;
+        resp.challenger = challenger;
+        resp.challengee = self.getUsername();
         self.send(resp);
         document.getElementById('haastelaatikko').style.visibility="hidden";
     },

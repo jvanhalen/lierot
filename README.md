@@ -8,6 +8,7 @@ https://www.openshift.com/faq/how-many-applications-can-i-deploy-and-what-resour
 CREDITS:
 http://itweek.deviantart.com/art/Knob-Buttons-Toolbar-icons-73463960 for the nice UI icons
 http://opengameart.org/content/completion-sound for pick up sound
+http://opengameart.org/content/retro music
 
 TODO:
  - more strict encapsulation in modules

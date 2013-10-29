@@ -46,6 +46,9 @@ var GameServer = function(messagehandler) {
     self.messageHandler.attachGameServer(self);
     self.gameSessions = {};
 
+    self.matchQueue = {};
+    self.matchQueueTmo = 8000;
+
     self.queueMatch = function(from, data) {
         console.log("queue match", data);
         // TODO: better matchmaking for multiplayer games
@@ -53,22 +56,28 @@ var GameServer = function(messagehandler) {
             // Already in game, do we have to respond something?
         }
         else {
-            var playerList = [from];
-            self.createGame(playerList);
+            if (undefined === self.matchQueue[data.username]) {
+                self.matchQueue[data.username] = {playerList: [data.username], queueTimer: null};
+            }
+            self.createGame(data.username);
         }
     },
 
-    self.createGame = function(playerList) {
-        var game = new Peli(playerList, self.messageHandler, self);
+    self.createGame = function(challenger) {
+        console.log("GameServer: create game for", challenger);
+        console.log(self.matchQueue[challenger].playerList);
+
+        var game = new Peli(self.matchQueue[challenger].playerList, self.messageHandler, self);
         // Connect players to the game
-        for (var x=0; x<playerList.length; x++) {
-            self.gameSessions[playerList[x]] = {player: playerList[x], game: game};
+        for (var x=0; x<self.matchQueue[challenger].playerList.length; x++) {
+            self.gameSessions[self.matchQueue[challenger].playerList[x]] = {player: self.matchQueue[challenger].playerList[x], game: game};
         }
-        self.updatePlayerList(playerList, true);
+        self.updatePlayerList(self.matchQueue[challenger].playerList, true);
     },
 
     self.endGame = function(playerList) {
         console.log("GameServer.endGame");
+        delete self.matchQueue[playerList[0]];
         var game = playerList[0].game;
         for (var x=0; x<playerList.length; x++) {
             delete self.gameSessions[playerList[x]];
@@ -137,13 +146,19 @@ var GameServer = function(messagehandler) {
             console.error("GameServer: handleChallengeResponse failed: typeof challengee/challenger === undefined");
         }
         if ("OK" == msg.response) {
-            var playerList = [];
+            console.log("msg", msg);
             if (false == self.isIngame(msg.challenger) && false == self.isIngame(msg.challengee)) {
-                playerList.push(msg.challenger, msg.challengee);
-            }
-            //console.log("playerList", playerList);
-            if (playerList.length == 2) {
-                self.createGame(playerList);
+                if (undefined === self.matchQueue[msg.challenger]) {
+                    self.matchQueue[msg.challenger] = {playerList: [msg.challenger], queueTimer: null};
+                }
+                if (self.matchQueue[msg.challenger].playerList.length < 4) {
+                    console.log("pushing challengee", msg.challengee, self.matchQueue[msg.challenger]);
+                    self.matchQueue[msg.challenger].playerList.push(msg.challengee);
+                }
+                if (self.matchQueue[msg.challenger].playerList.length >= 2 && null == self.matchQueue[msg.challenger].queueTimer) {
+                    console.log("queueTmo set for"), msg.challenger;
+                    self.matchQueue[msg.challenger].queueTimer = setTimeout(self.createGame, 10000, msg.challenger);
+                }
             }
             else {
                 console.log("could not find player:", msg.challenger, "or", msg.challengee);

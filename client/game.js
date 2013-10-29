@@ -32,6 +32,9 @@ var Peli = function () {
     self.messageHandler = undefined;
     self.kaynnissa = false;
     self.score = 0;
+    self.music = null;
+    self.preferredVolume = 0.1;
+    self.maxVolume = 1.0;
 
     self.init = function() {
 
@@ -63,6 +66,34 @@ var Peli = function () {
         self.score = 0;
     },
 
+    self.playMusic = function(volume) {
+        console.log("Game: playMusic");
+        if (self.music == null) {
+            console.log("Game: creating new audio instance");
+            self.music = new Audio('../media/retro.ogg');
+            if (typeof self.music.loop == 'boolean')
+            {
+                self.music.loop = true;
+            }
+            else
+            {
+                self.music.addEventListener('ended', function() {
+                    self.music.volume = self.preferredVolume;
+                    self.music.currentTime = 0;
+                    self.music.play();
+                }, false);
+            }
+            self.music.volume = volume;
+        }
+        self.music.play();
+    },
+
+    self.stopMusic = function() {
+        console.log("Game: stopMusic");
+        self.music.pause();
+        delete self.music;
+    }
+
     self.initGameboard = function() {
         console.log("initGameboard");
 
@@ -81,7 +112,7 @@ var Peli = function () {
         }
         pelilauta += '</table>';
         //pelilauta += '<input id="input" name="syotekentta" size="1" maxLength="1" />';
-        pelilauta += "W = up, A = vasemmalle, S = down, D = oikealle";
+        pelilauta += "W = up, A = left, S = down, D = right";
         pelilauta += "&nbsp;&nbsp;&nbsp;";
         pelilauta += '<input id="aloitapeli_painike" type="submit" value="AloitaPeli" onclick="game.aloitaPeli()">';
 
@@ -150,8 +181,9 @@ var Peli = function () {
             // A little trick to play audio when score is increased
             if (msg.worms[x].name == self.name && self.score < msg.worms[x].score) {
                 var audio = document.getElementById('pick_audio');
-                audio.volume = 0.3;
+                audio.volume = self.maxVolume;
                 audio.play();
+                audio.volume = self.preferredVolume;
                 self.score=msg.worms[x].score;
             }
             var separator = (x+1 != msg.worms.length) ? "&nbsp;&nbsp|&nbsp;&nbsp;" : "";
@@ -159,18 +191,22 @@ var Peli = function () {
             document.getElementById("pistetilanne").innerHTML += ":&nbsp;" +  msg.worms[x].score + separator;
 
         }
-        if (msg.state == "END") {
-            alert("Game over!");
+        if (msg.phase == "INIT") {
+            self.alustaPeli();
+            self.playMusic(self.preferredVolume);
+        }
+        if (msg.phase == "END") {
+            self.stopMusic();
             self.endGame();
         }
     },
 
     self.aloitaPeli = function() {
-        var msg = messages.message.QUEUE_MATCH.new();
-        msg.username = self.messageHandler.getUsername();
-        self.messageHandler.send(msg);
-        self.kaynnissa = true;
-
+        console.log("Game: aloitaPeli");
+            var msg = messages.message.QUEUE_MATCH.new();
+            msg.username = self.messageHandler.getUsername();
+            self.messageHandler.send(msg);
+            self.kaynnissa = true;
     },
 
     self.kasittelePainallus = function(event) {
@@ -219,6 +255,7 @@ var Peli = function () {
 
     self.endGame = function() {
         self.kaynnissa = false;
+        self.stopMusic();
     },
 
     self.isRunning = function() {
