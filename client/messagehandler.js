@@ -182,6 +182,10 @@ var MessageHandler = function(game) {
         // Pop a dialog
         //document.getElementById('haasteajastin').innerHTML = "10";
 
+        var audio = document.getElementById('challenge_request_audio');
+        audio.volume = 0.4;
+        audio.play();
+
         console.log("handleChallengeRequest", msg);
         document.getElementById('haaste').innerHTML = 'You\'ve been challenged by<br /><strong>' + msg.challenger + '</strong><br />';
         document.getElementById('haaste').innerHTML += '<input type="button" value="Accept" onclick="acceptChallenge(\''+msg.challenger+'\')"><input type="button" value="Reject" onclick="rejectChallenge(\''+msg.challenger+'\')">';

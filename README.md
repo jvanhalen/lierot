@@ -7,14 +7,15 @@ https://www.openshift.com/faq/how-many-applications-can-i-deploy-and-what-resour
 
 CREDITS:
 http://itweek.deviantart.com/art/Knob-Buttons-Toolbar-icons-73463960 for the nice UI icons
+http://opengameart.org/content/completion-sound for pick up sound
 
 TODO:
  - more strict encapsulation in modules
  - refactoring
- 
+
 KNOWN PROBLEMS:
  - Input handler: WASD opens FF quick search bar -> set focus to some textfield, while game is on, to prevent this
- 
+
 CORRECTED PROBLEMS:
  ++ Input handler: restrict one user input per server tick (latest will be used when ticked)
  ++ Chat: prevent unauthorized user chat

@@ -30,7 +30,8 @@ var Peli = function () {
     self.name = null;
     self.messageBroker = undefined;
     self.messageHandler = undefined;
-    self.kaynnissa = false;;
+    self.kaynnissa = false;
+    self.score = 0;
 
     self.init = function() {
 
@@ -59,6 +60,7 @@ var Peli = function () {
 
         self.initGameboard();
         self.kaynnissa = true;
+        self.score = 0;
     },
 
     self.initGameboard = function() {
@@ -96,15 +98,6 @@ var Peli = function () {
                 document.getElementById(id).bgColor = self.gameArea.color;
             }
         }
-/*
-        // Aseta liero aloituskohtaan
-        if (self.worm) {
-            console.log("aseta worm");
-            for(var x=0; x<self.worm.startingLength; x++) {
-                document.getElementById(self.worm.location[x]).bgColor = self.worm.color;
-            }
-        }
-*/
     },
 
     self.setFood = function() {
@@ -154,6 +147,13 @@ var Peli = function () {
         // Päivitä pistetilanne
         document.getElementById("pistetilanne").innerHTML = "";
         for (var x=0; x<msg.worms.length; x++) {
+            // A little trick to play audio when score is increased
+            if (msg.worms[x].name == self.name && self.score < msg.worms[x].score) {
+                var audio = document.getElementById('pick_audio');
+                audio.volume = 0.3;
+                audio.play();
+                self.score=msg.worms[x].score;
+            }
             var separator = (x+1 != msg.worms.length) ? "&nbsp;&nbsp|&nbsp;&nbsp;" : "";
             document.getElementById("pistetilanne").innerHTML += '<strong><font color="' + msg.worms[x].color + '">' + msg.worms[x].name +'</font></strong>';
             document.getElementById("pistetilanne").innerHTML += ":&nbsp;" +  msg.worms[x].score + separator;
@@ -165,9 +165,7 @@ var Peli = function () {
         }
     },
 
-    self.aloitaPeli = function(){
-        // Tarkista syötteet
-        // Lähetä kirjautumispyyntö
+    self.aloitaPeli = function() {
         var msg = messages.message.QUEUE_MATCH.new();
         msg.username = self.messageHandler.getUsername();
         self.messageHandler.send(msg);

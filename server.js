@@ -35,6 +35,7 @@ var Server = function() {
         // Salli hakemistot
         self.app.use('/client', express.static(__dirname + '/client'));
         self.app.use('/common', express.static(__dirname + '/common'));
+        self.app.use('/media', express.static(__dirname + '/media'));
 
         // Palauta index.html selaimille
         self.app.get('/', function(req, res) {
