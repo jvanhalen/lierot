@@ -131,7 +131,11 @@ var GameServer = function(messagehandler) {
     },
 
     self.handleChallengeResponse = function(from, msg) {
-        console.log("GameServer.handleChallengeResponse");
+        console.log("GameServer: handleChallengeResponse");
+        // TODO: message paramters
+        if (typeof challenger === undefined || typeof challengee === undefined) {
+            console.error("GameServer: handleChallengeResponse failed: typeof challengee/challenger === undefined");
+        }
         if ("OK" == msg.response) {
             var playerList = [];
             if (false == self.isIngame(msg.challenger) && false == self.isIngame(msg.challengee)) {
@@ -274,7 +278,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
         clearInterval(self.timer);
         self.gameServer.endGame(self.playerList);
     },
-    
+
 
     self.updateMatch = function() {
         //console.log("updateMatch");

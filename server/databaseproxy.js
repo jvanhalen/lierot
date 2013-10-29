@@ -69,10 +69,16 @@ var DatabaseProxy = function() {
                     if(rows[0].PasswordHash == data.passwordhash) {
                         resp.response = "OK";
                         resp.username = rows[0].UserName;
-                        self.messageHandler.connectClient(socket, rows[0].UserName);
+                        socket.send(JSON.stringify(resp));  // Send response first
+                        self.messageHandler.connectClient(socket, resp.username);
+                    }
+                    else {
+                        socket.send(JSON.stringify(resp));
                     }
                 }
-                socket.send(JSON.stringify(resp));
+                else {
+                    console.log("DatabaseProxy: something went terribly wrong");
+                }
             });
         });
     },

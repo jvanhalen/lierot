@@ -10,13 +10,18 @@ var MessageHandler = function(game) {
         switch (msg.name) {
             case 'CHAT_SYNC':
                 //console.log("chat_sync");
-                document.getElementById('viestialue').innerHTML += '<div id="viesti"><a href="#" title="viesti">'+ msg.username + ':</a>&nbsp;&nbsp;' + msg.text + '</div>';
+                if (msg.username == "System notice") {
+                    document.getElementById('viestialue').innerHTML += '<div id="viesti">' + msg.username + ':&nbsp;&nbsp;' + msg.text + '</div>';
+                }
+                else {
+                    document.getElementById('viestialue').innerHTML += '<div id="viesti"><a href="#" title="viesti">'+ msg.username + ':</a>&nbsp;&nbsp;' + msg.text + '</div>';
+                }
                 // Chatbox auto-scroll
                 document.getElementById('keskustelualue').scrollTop += 20;
                 break;
 
             case 'AUTH_RESP':
-                //console.log(msg.name, msg.response);
+                console.log(msg.name, msg);
                 if(msg.response == "OK" && msg.username) {
                     self.setUsername(msg.username);
                     document.getElementById('infoteksti').style.color = "black";
@@ -115,36 +120,32 @@ var MessageHandler = function(game) {
     self.updatePlayerList = function(msg) {
         switch(msg.type) {
             case 'update':
+                console.log("preparing partial update on", document.getElementById('kirjautuneetpelaajat').innerHTML);
                 for (var item in msg.players) {
-                    console.log("update", item, ":", msg.players[item]);
+                    console.log("partial update", item, ":", msg.players[item]);
                     // Update player entry
+                    if (null != document.getElementById(msg.players[item].username) && undefined !== document.getElementById(msg.players[item].username)) {
+                        console.log("removing earlier", document.getElementById(msg.players[item].username));
+                        var rem = document.getElementById(msg.players[item].username);
+                        rem.remove();
+                    }
+
                     if (msg.players[item].authenticated == true || msg.players[item].authenticated == "true") {
                         var pre = '<div id="' + msg.players[item].username +'">';
                         var player = "";
-                        if (msg.players[item].ingame == false && msg.players[item].username != self.getUsername()) {
-                            player += ' <a href="#" title="haasta" onclick="challenge(\''+msg.players[item].username+'\')">'+ msg.players[item].username + '</a>';
+                        if (msg.players[item].ingame == true || msg.players[item].username == self.getUsername()) {
+                            player = msg.players[item].username;
                         }
                         else {
-                            player += msg.players[item].username;
+                            player = '<a href="#" title="haasta" onclick="challenge(\''+msg.players[item].username+'\')">'+ msg.players[item].username + '</a>';
                         }
                         post = '</div>';
 
-                        if (null == document.getElementById(msg.players[item].username)) {
-                            // div does not exist, create it
-                            console.log("create new entry", msg.players[item].username);
-                            document.getElementById('kirjautuneetpelaajat').innerHTML += (pre + player + post);
-                            console.log("update", pre + player + post);
-                        }
-                        else {
-                            console.log("update original", document.getElementById(msg.players[item].username).innerHTML);
-                            document.getElementById(msg.players[item].username).innerHTML = player;
-                            console.log("update new", document.getElementById(msg.players[item].username).innerHTML);
-
-                        }
+                        document.getElementById('kirjautuneetpelaajat').innerHTML += pre + player + post;
                         console.log("update ready", document.getElementById('kirjautuneetpelaajat').innerHTML);
                     }
                     else {
-                        //console.log("removing", item, ":", document.getElementById(msg.players[item].username));
+                        console.log("removing", item, ":", document.getElementById(msg.players[item].username));
                         var rem = document.getElementById(msg.players[item].username);
                         rem.remove();
                     }
@@ -152,18 +153,21 @@ var MessageHandler = function(game) {
                 break;
 
             case 'full':
-                console.log(msg.type, "update");
+                console.log("full update");
                 document.getElementById('kirjautuneetpelaajat').innerHTML = "";
                 for(var item in msg.players) {
-                    var player = '<div id="' + msg.players[item].username +'">';
-                    if (msg.players[item].ingame == false && msg.players[item].username.toLowerCase() != self.getUsername().toLowerCase()) {
-                        player += ' <a href="#" title="haasta" onclick="challenge("'+msg.players[item].username+'")">' + msg.players[item].username + '</a>';
+                    var minime = msg.players[item].username.toLowerCase();
+                    var miniuser = self.getUsername().toLowerCase();
+                    var pre = '<div id="' + msg.players[item].username +'">';
+                    var player = "";
+                    if (msg.players[item].ingame == false && minime != miniuser) {
+                        player = ' <a href="#" title="haasta" onclick="challenge(\''+msg.players[item].username+'\')">'+ msg.players[item].username + '</a>';
                     }
                     else {
-                        player += msg.players[item].username;
+                        player = msg.players[item].username;
                     }
-                    player += '</div>';
-                    document.getElementById('kirjautuneetpelaajat').innerHTML += player;
+                    post = '</div>';
+                    document.getElementById('kirjautuneetpelaajat').innerHTML += pre + player + post;
                 }
                 break;
 
@@ -175,17 +179,43 @@ var MessageHandler = function(game) {
     },
 
     self.handleChallengeRequest = function(msg) {
-        console.log("handleChallengeRequest from", msg.challenger);
+        // Pop a dialog
+        //document.getElementById('haasteajastin').innerHTML = "10";
+
+        console.log("handleChallengeRequest", msg);
+        document.getElementById('haaste').innerHTML = 'You\'ve been challenged by<br /><strong>' + msg.challenger + '</strong><br />';
+        document.getElementById('haaste').innerHTML += '<input type="button" value="Accept" onclick="acceptChallenge(\''+msg.challenger+'\')"><input type="button" value="Reject" onclick="rejectChallenge(\''+msg.challenger+'\')">';
+        document.getElementById('haastelaatikko').style.visibility="visible";
+        self.challengeTmo = setTimeout("rejectChallenge(\'" + msg +"\')", 10000);
+        //setInterval("self.challengeTimer("+msg+")", 1000);
+    },
+/*
+    self.challengeTimer = function(number) {
+        document.getElementById('haasteajastin').innerHTML = "<strong>" + number + "</strong>";
+        number--;
+    },
+*/
+    self.acceptChallenge = function(challenger) {
+        clearTimeout(self.challengeTmo);
+        console.log("handleChallengeRequest from", challenger);
         var resp = messages.message.CHALLENGE_RESP.new();
-        if(confirm("Accept challenge from", msg.username)) {
-            resp.response = "OK";
-        }
-        else {
-            resp.response = "NOK";
-        }
-        resp.challenger = msg.challenger;
-        resp.challengee = msg.challengee;
+
+        resp.response = "OK";
+        resp.challenger = self.getUsername();
+        resp.challengee = challenger;
         self.send(resp);
+        document.getElementById('haastelaatikko').style.visibility="hidden";
+    },
+
+    self.rejectChallenge = function(challenger) {
+        clearTimeout(self.challengeTmo);
+        console.log("handleChallengeRequest from", challenger);
+        var resp = messages.message.CHALLENGE_RESP.new();
+        resp.response = "NOK";
+        resp.challenger = self.getUsername();
+        resp.challengee = challenger;
+        self.send(resp);
+        document.getElementById('haastelaatikko').style.visibility="hidden";
     },
 
     self.handleChallengeResponse = function(msg) {

@@ -37,6 +37,7 @@ var MessageHandler = function() {
                 self.gameServer.userData(from, msg);
                 // Send update to clients
                 self.removeFromPlayerList(msg.username);
+                self.sendSystemMessage(msg.username + " disconnected.");
                 break;
 
             case 'CHALLENGE_REQ':
@@ -53,23 +54,30 @@ var MessageHandler = function() {
                 break;
         }
     },
-    
+
     self.authenticate = function(from, msg) {
-        
+
         switch (msg.name) {
             case 'AUTH_REQ':
                 self.databaseProxy.getLogin(from, msg);
             break;
-            
+
             case 'REG_REQ':
                 //console.log("client requested registration:", msg.username, msg.passwordhash);
                 self.databaseProxy.newUserAccount(from, msg);
                 break;
-            
+
             default:
                 console.log("MessageHandler: default branch reached in authentication");
                 break;
         }
+    },
+
+    self.sendSystemMessage = function(text) {
+        var resp = messages.message.CHAT_SYNC.new();
+        resp.username = "System notice";
+        resp.text = text;
+        self.broadcast(resp);
     },
 
     self.broadcast = function(msg) {
@@ -102,15 +110,11 @@ var MessageHandler = function() {
         self.messageBroker.connectClient(websocket, username);
 
         // Send full playerlist to the authenticated user
-        self.sendFullPlayerList(websocket, username);
+        setTimeout(self.sendFullPlayerList(websocket, username));
 
         // Send updates to other authenticated users
         self.addToPlayerList(username);
-    },
-
-    self.isAuthenticated = function(from, msg) {
-
-        return false;
+        self.sendSystemMessage(username + " connected.");
     },
 
     self.sendFullPlayerList = function(websocket, username) {
@@ -132,7 +136,8 @@ var MessageHandler = function() {
                 msg.players.push(player);
             }
         }
-        self.messageBroker.broadcast(msg);
+        //self.messageBroker.broadcast(msg);
+        websocket.send(JSON.stringify(msg));
     },
 
     self.removeFromPlayerList = function(username) {

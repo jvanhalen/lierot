@@ -22,7 +22,7 @@ var MessageBroker = function() {
     },
 
     self.send = function(data) {
-        console.log("data:", data);
+        //console.log("data:", data);
         self.ws.send(JSON.stringify(data)); // Käytä JSON.stringify serialisoimaan lähetettävä data
     }
 

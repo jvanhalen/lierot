@@ -27,22 +27,24 @@ var MessageBroker = function(serverapp) {
 
             // YHTEYDEN KATKETESSA
             websocket.on('close', function() {
-                console.log("MessageBroker: client " + websocket._socket.remotePort + " disconnected (" + websocket.username +")");
+                console.log("MessageBroker: client disconnected (" + websocket.username +")");
                 var username = websocket.username;
-                
-                // Set websocket to null
+
+                // Set websocket's username to null
                 websocket.username = null;
-                
+
                 // Notify other server objects about the disconnection
                 if (username != null) {
-                    console.log(username);
+                    self.disconnectClient(username);
+                    console.log(username, "disconnected");
                     var msg = messages.message.DISCONNECT_REQ.new();
                     msg.username = username;
                     self.receive(username, msg);
 
-                    self.authenticated--;
                 }
-                self.connected--;
+                else {
+                    self.connected--;
+                }
             });
 
             // VIESTI VASTAANOTETTAESSA
@@ -53,8 +55,17 @@ var MessageBroker = function(serverapp) {
                 data = JSON.parse(data);
 
                 // Separate authentication and registration messages from others
-                if(data.name == "AUTH_REQ" || data.name == "REG_REQ" && websocket.username == null) {
-                    self.messageHandler.authenticate(websocket, data);
+                if(data.name == "AUTH_REQ" || data.name == "REG_REQ") {
+                    console.log("authentication request from", websocket.username);
+                    if (null == websocket.username && undefined === self.clients[data.username]) {
+                        self.messageHandler.authenticate(websocket, data);
+                    }
+                    else {
+                        console.log("MessageBroker: websocket already authenticated as", websocket.username);
+                        var resp = messages.message.AUTH_RESP.new();
+                        resp.response = "NOK";
+                        websocket.send(JSON.stringify(resp));
+                    }
                 }
                 else if (websocket.username != null) {
                     // Handle disconnect here, then delegate
@@ -78,7 +89,6 @@ var MessageBroker = function(serverapp) {
 
     self.receive = function(from, data) {
         //console.log("MessageBroker.receive", data);
-
         // Käytä JSON.parse-funktiota vastaanotetun datan parsimiseen
         if(self.messageHandler) {
             self.messageHandler.receive(from, data);
@@ -92,8 +102,10 @@ var MessageBroker = function(serverapp) {
         //console.log("MessageBroker: send to", to + ":", msg);
         if (undefined !== to && null != to) {
             var open = require('ws').OPEN;
-            if (self.clients[to].readyState == open) {
-                self.clients[to].send(JSON.stringify(msg));
+            if (undefined !== self.clients[to]) {
+                if (self.clients[to].readyState == open) {
+                    self.clients[to].send(JSON.stringify(msg));
+                }
             }
         }
     },
@@ -109,21 +121,21 @@ var MessageBroker = function(serverapp) {
     },
 
     self.connectClient = function(websocket, username) {
-        //console.log("MessageBroker: connected client", username, websocket);
+        console.log("MessageBroker: connected client", username);
         // Add username to websocket
         websocket.username = username;
         self.clients[username] = websocket;
         self.authenticated++;
     },
-    
+
     self.disconnectClient = function(username) {
-        console.log("attach client:", username);
+        console.log("MessageBroker: disconnect client:", username);
         // Add username to websocket
-        self.clients[username].username = null;
+        delete self.clients[username];
         self.authenticated--;
         self.connected--;
     },
-    
+
     self.attachHandler = function(handler) {
         self.messageHandler = handler;
         console.log("MessageBroker: MessageHandler attached");

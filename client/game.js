@@ -78,8 +78,9 @@ var Peli = function () {
             pelilauta += '</tr>';
         }
         pelilauta += '</table>';
-        pelilauta += '<input id="input" name="syotekentta" size="1" maxLength="1" />';
+        //pelilauta += '<input id="input" name="syotekentta" size="1" maxLength="1" />';
         pelilauta += "W = up, A = vasemmalle, S = down, D = oikealle";
+        pelilauta += "&nbsp;&nbsp;&nbsp;";
         pelilauta += '<input id="aloitapeli_painike" type="submit" value="AloitaPeli" onclick="game.aloitaPeli()">';
 
         document.getElementById('pelilauta').innerHTML = pelilauta;
@@ -154,7 +155,7 @@ var Peli = function () {
         document.getElementById("pistetilanne").innerHTML = "";
         for (var x=0; x<msg.worms.length; x++) {
             var separator = (x+1 != msg.worms.length) ? "&nbsp;&nbsp|&nbsp;&nbsp;" : "";
-            document.getElementById("pistetilanne").innerHTML += msg.worms[x].name;
+            document.getElementById("pistetilanne").innerHTML += '<strong><font color="' + msg.worms[x].color + '">' + msg.worms[x].name +'</font></strong>';
             document.getElementById("pistetilanne").innerHTML += ":&nbsp;" +  msg.worms[x].score + separator;
 
         }
@@ -181,25 +182,25 @@ var Peli = function () {
         switch (input) {
             case 65:
             case 97:
-                console.log("A");
+                //console.log("A");
                 direction = 'left';
                 break;
 
             case 68:
             case 100:
-                console.log("D");
+                //console.log("D");
                 direction = 'right';
                 break;
 
             case 83:
             case 115:
-                console.log("S");
+                //console.log("S");
                 direction = 'down';
                 break;
 
             case 87:
             case 119:
-                console.log("W");
+                //onsole.log("W");
                 direction = 'up';
                 break;
 

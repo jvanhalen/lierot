@@ -31,7 +31,6 @@
             if (document.getElementById("kayttajanimi").value && document.getElementById("salasana").value) {
                 // Lähetä kirjautumispyyntö
                 var msg = messages.message.REG_REQ.new();
-                msg.username = document.getElementById("kayttajanimi").value;
                 msg.passwordhash = Sha1.hash(document.getElementById("salasana").value);
                 game.messageHandler.send(msg);
             }
@@ -48,7 +47,7 @@
 
         function handleKeypress(event) {
             event.preventDefault;
-            console.log("event.which:", event.which, "event.keyCode:", event.keyCode, "event.charCode:", event.charCode);
+            //console.log("event.which:", event.which, "event.keyCode:", event.keyCode, "event.charCode:", event.charCode);
             if (event.which == 13 || event.keyCode == 13) {
                 // Lähetä tekstirimpsu jos sen length > 0
                 var chatmsg = document.getElementById('keskusteluviesti').value;
@@ -68,6 +67,16 @@
                 game.kasittelePainallus(event);
             }
             return true; // Huom! return false; ei lisää merkkiä textboxiin
+        }
+
+        function acceptChallenge(challenger) {
+            console.log("acceptChallenge", challenger);
+            game.messageHandler.acceptChallenge(challenger);
+        }
+
+        function rejectChallenge(challenger) {
+            console.log("rejectChallenge", challenger);
+            game.messageHandler.rejectChallenge(challenger);
         }
     </script>
 </head>
@@ -108,7 +117,7 @@
     </div>
     <div id="chatti">
         <fieldset>
-            <legend><strong>Chat</strong></legend>
+            <legend><strong>Messaging</strong></legend>
             <div id="keskustelualue">
                 <div id="viestialue"></div>
             </div>
@@ -123,6 +132,9 @@
             <div id="palvelinloki">
             </div>
         </fieldset>
+    </div>
+    <div id="haastelaatikko">
+        <div id="haaste"</div>
     </div>
 </div>
 </body>
