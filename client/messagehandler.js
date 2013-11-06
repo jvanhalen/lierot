@@ -67,6 +67,18 @@ var MessageHandler = function(game) {
                 document.getElementById('palvelinloki').innerHTML += "<strong>Data averages: </strong> " + "input " + msg.avginput + " output  " + msg.avgoutput + " (KiB)<br />";
 
                 break;
+            
+            case 'RANKING_LIST':
+                console.log("Update ranking list", msg);
+                var tmpusers = '<table id="rankings">';
+                for(var item in msg.players) {
+                    tmpusers += '<tr>';
+                    tmpusers += '<td><strong>' + msg.players[item].username + '</strong></td><td>' + msg.players[item].highscore + '</td>';
+                    tmpusers += '</tr>';
+                }
+                tmpusers += '</table>'
+                document.getElementById('pelaaja').innerHTML = tmpusers;
+                break;
 
             case 'CHALLENGE_REQ':
                 self.handleChallengeRequest(msg);

@@ -137,6 +137,9 @@ var MessageHandler = function() {
             }
         }
         websocket.send(JSON.stringify(msg));
+        
+        // Send ranking list to connected player
+        self.databaseProxy.sendRankings(websocket, username);
     },
 
     self.removeFromPlayerList = function(username) {

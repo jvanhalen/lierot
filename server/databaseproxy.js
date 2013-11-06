@@ -76,11 +76,49 @@ var DatabaseProxy = function() {
     },
  
     self.setHighScore = function(username, score) {
-        // TODO: Rankings to server and client side
+        self.connection.query("UPDATE UserAccount SET HighScore=? WHERE UserName = ? AND ? > HighScore", [ score, username, score ], function(err, rows){
+            if(err != null) {
+                console.log("DatabaseProxy setHighScore failed", err);
+            }
+            else {
+                // TODO: better ranking list handling
+                console.log("DatabaseProxy new highscore", score, "set for", username);
+                self.updateRankings();
+            }
+          });
+    },
+    
+    self.updateRankings = function() {
+        self.connection.query("SELECT UserName, HighScore FROM UserAccount ORDER BY HighScore DESC LIMIT 100", [], function(err, rows){
+            if(err != null) {
+                console.log("DatabaseProxy updateRankings failed", err);
+            }
+            else {
+                var msg = messages.message.RANKING_LIST.new();
+                msg.players = [];
+                for(var item in rows) {
+                    msg.players.push({ username: rows[item].UserName, highscore: rows[item].HighScore });
+                }
+                self.messageHandler.broadcast(msg);
+            }
+          });
+    },
 
-  },
-
-
+    self.sendRankings = function(websocket, username) {
+        self.connection.query("SELECT UserName, HighScore FROM UserAccount ORDER BY HighScore DESC LIMIT 100", [], function(err, rows){
+            if(err != null) {
+                console.log("DatabaseProxy sendRankings failed", err);
+            }
+            else {
+                var msg = messages.message.RANKING_LIST.new();
+                msg.players = [];
+                for(var item in rows) {
+                    msg.players.push({ username: rows[item].UserName, highscore: rows[item].HighScore });
+                }
+                self.messageHandler.send(username, msg);
+            }
+          });
+    },
     /*  ====================================================================================
      Metodi: newUserAccount: (UserName: string, PasswordHash: string, Email: string) : void
      Toiminta: Luodaan uusi käyttäjätili tietokantaan, oletuksena tili on inaktiivinen ja käyttäjä ei-sisäänkirjautunut
@@ -111,6 +149,7 @@ var DatabaseProxy = function() {
                 socket.send(JSON.stringify(resp));
                 }
             }
+            console.log("Success!");
         }
     });
 

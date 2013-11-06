@@ -175,7 +175,17 @@
             new: function() {
                 return JSON.parse(JSON.stringify(this.message));
             }
-        }
+        },
+        RANKING_LIST: {
+            message: {
+                name: "RANKING_LIST",
+                players: [{username: "Wobotti", // Players are already in descending order (highest rank -> lowest)
+                           highscore: 0}]
+            },
+            new: function() {
+                return JSON.parse(JSON.stringify(this.message));
+            }
+        },
     }
 
     exports.message = message;

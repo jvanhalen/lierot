@@ -100,7 +100,7 @@ var Peli = function () {
         document.getElementById('pelilauta').innerHTML = "";
         var pelilauta = '<p id="pistetilanne"></p>';
         // Luo ruudukko
-        pelilauta += '<table width="400" height="400">';
+        pelilauta += '<table width="400" height="400" id="peliruudukko">';
         for(var i=0; i<self.gameArea.height; i++) {
             pelilauta += '<tr>'; // Luo uusi rivi
             for(var j=0; j<self.gameArea.width; j++) {

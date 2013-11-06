@@ -1,59 +1,212 @@
 0 info it worked if it ends with ok
-1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', '-S', 'os' ]
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install' ]
 2 info using npm@1.2.15
 3 info using node@v0.10.1
-4 verbose read json /Users/jaakko/Dropbox/Coding/Projects/tiko/lierot_lennosta/lierot/package.json
-5 verbose read json /Users/jaakko/Dropbox/Coding/Projects/tiko/lierot_lennosta/lierot/node_modules/express/package.json
-6 verbose read json /Users/jaakko/Dropbox/Coding/Projects/tiko/lierot_lennosta/lierot/node_modules/utils/package.json
-7 verbose read json /Users/jaakko/Dropbox/Coding/Projects/tiko/lierot_lennosta/lierot/node_modules/ws/package.json
-8 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/tiko/lierot_lennosta/lierot/package.json
-9 verbose readDependencies using package.json deps
-10 verbose cache add [ 'os', null ]
-11 verbose cache add name=undefined spec="os" args=["os",null]
-12 verbose parsed url { protocol: null,
-12 verbose parsed url   slashes: null,
-12 verbose parsed url   auth: null,
-12 verbose parsed url   host: null,
-12 verbose parsed url   port: null,
-12 verbose parsed url   hostname: null,
-12 verbose parsed url   hash: null,
-12 verbose parsed url   search: null,
-12 verbose parsed url   query: null,
-12 verbose parsed url   pathname: 'os',
-12 verbose parsed url   path: 'os',
-12 verbose parsed url   href: 'os' }
-13 silly lockFile 999a3419-os os
-14 verbose lock os /Users/jaakko/.npm/999a3419-os.lock
-15 silly lockFile 999a3419-os os
-16 silly lockFile 999a3419-os os
-17 verbose addNamed [ 'os', '' ]
-18 verbose addNamed [ null, '' ]
-19 silly lockFile 46c56d42-os os@
-20 verbose lock os@ /Users/jaakko/.npm/46c56d42-os.lock
-21 silly addNameRange { name: 'os', range: '', hasData: false }
-22 verbose url raw os
-23 verbose url resolving [ 'https://registry.npmjs.org/', './os' ]
-24 verbose url resolved https://registry.npmjs.org/os
-25 info trying registry request attempt 1 at 11:42:47
-26 http GET https://registry.npmjs.org/os
-27 http 404 https://registry.npmjs.org/os
-28 silly registry.get cb [ 404,
-28 silly registry.get   { server: 'CouchDB/1.3.1 (Erlang OTP/R15B03)',
-28 silly registry.get     date: 'Fri, 25 Oct 2013 08:42:48 GMT',
-28 silly registry.get     'content-type': 'application/json',
-28 silly registry.get     'content-length': '52',
-28 silly registry.get     'cache-control': 'must-revalidate' } ]
-29 silly lockFile 46c56d42-os os@
-30 silly lockFile 46c56d42-os os@
-31 error 404 'os' is not in the npm registry.
-31 error 404 You should bug the author to publish it
-31 error 404
-31 error 404 Note that you can also install from a
-31 error 404 tarball, folder, or http url, or git url.
-32 error System Darwin 12.5.0
-33 error command "node" "/usr/local/bin/npm" "install" "-S" "os"
-34 error cwd /Users/jaakko/Dropbox/Coding/Projects/tiko/lierot_lennosta/lierot
-35 error node -v v0.10.1
-36 error npm -v 1.2.15
-37 error code E404
-38 verbose exit [ 1, true ]
+4 verbose read json /Users/jaakko/Dropbox/Coding/Projects/backup/liero/package.json
+5 verbose readDependencies using package.json deps
+6 verbose install where, deps [ '/Users/jaakko/Dropbox/Coding/Projects/backup/liero',
+6 verbose install   [ 'ws', 'express', 'db-mysql', 'utils' ] ]
+7 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/package.json
+8 info preinstall OpenShift-Sample-App@1.0.0
+9 verbose read json /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/express/package.json
+10 verbose read json /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/npm-debug.log/package.json
+11 verbose read json /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/utils/package.json
+12 verbose read json /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/ws/package.json
+13 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/package.json
+14 verbose readDependencies using package.json deps
+15 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/express/package.json
+16 verbose read json /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/npm-debug.log/package.json
+17 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/utils/package.json
+18 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/ws/package.json
+19 verbose already installed skipping utils@~0.1.4 /Users/jaakko/Dropbox/Coding/Projects/backup/liero
+20 verbose already installed skipping ws@0.4.31 /Users/jaakko/Dropbox/Coding/Projects/backup/liero
+21 verbose already installed skipping express@3.3.8 /Users/jaakko/Dropbox/Coding/Projects/backup/liero
+22 verbose cache add [ 'db-mysql@0.7.6', null ]
+23 verbose cache add name=undefined spec="db-mysql@0.7.6" args=["db-mysql@0.7.6",null]
+24 verbose parsed url { protocol: null,
+24 verbose parsed url   slashes: null,
+24 verbose parsed url   auth: null,
+24 verbose parsed url   host: null,
+24 verbose parsed url   port: null,
+24 verbose parsed url   hostname: null,
+24 verbose parsed url   hash: null,
+24 verbose parsed url   search: null,
+24 verbose parsed url   query: null,
+24 verbose parsed url   pathname: 'db-mysql@0.7.6',
+24 verbose parsed url   path: 'db-mysql@0.7.6',
+24 verbose parsed url   href: 'db-mysql@0.7.6' }
+25 verbose cache add name="db-mysql" spec="0.7.6" args=["db-mysql","0.7.6"]
+26 verbose parsed url { protocol: null,
+26 verbose parsed url   slashes: null,
+26 verbose parsed url   auth: null,
+26 verbose parsed url   host: null,
+26 verbose parsed url   port: null,
+26 verbose parsed url   hostname: null,
+26 verbose parsed url   hash: null,
+26 verbose parsed url   search: null,
+26 verbose parsed url   query: null,
+26 verbose parsed url   pathname: '0.7.6',
+26 verbose parsed url   path: '0.7.6',
+26 verbose parsed url   href: '0.7.6' }
+27 verbose addNamed [ 'db-mysql', '0.7.6' ]
+28 verbose addNamed [ '0.7.6', '0.7.6' ]
+29 silly lockFile f70b617c-db-mysql-0-7-6 db-mysql@0.7.6
+30 verbose lock db-mysql@0.7.6 /Users/jaakko/.npm/f70b617c-db-mysql-0-7-6.lock
+31 verbose url raw db-mysql/0.7.6
+32 verbose url resolving [ 'https://registry.npmjs.org/', './db-mysql/0.7.6' ]
+33 verbose url resolved https://registry.npmjs.org/db-mysql/0.7.6
+34 info trying registry request attempt 1 at 08:21:40
+35 verbose etag "E4EEBUJPZJAULNP5XIVFP2JS4"
+36 http GET https://registry.npmjs.org/db-mysql/0.7.6
+37 http 304 https://registry.npmjs.org/db-mysql/0.7.6
+38 silly registry.get cb [ 304,
+38 silly registry.get   { server: 'CouchDB/1.3.1 (Erlang OTP/R15B03)',
+38 silly registry.get     etag: '"E4EEBUJPZJAULNP5XIVFP2JS4"',
+38 silly registry.get     date: 'Sat, 02 Nov 2013 06:21:41 GMT',
+38 silly registry.get     'content-length': '0' } ]
+39 verbose etag db-mysql/0.7.6 from cache
+40 verbose read json /Users/jaakko/.npm/db-mysql/0.7.6/package/package.json
+41 silly lockFile f70b617c-db-mysql-0-7-6 db-mysql@0.7.6
+42 silly lockFile f70b617c-db-mysql-0-7-6 db-mysql@0.7.6
+43 silly resolved [ { name: 'db-mysql',
+43 silly resolved     description: 'MySQL database bindings for Node.JS',
+43 silly resolved     keywords:
+43 silly resolved      [ 'database',
+43 silly resolved        'db',
+43 silly resolved        'native',
+43 silly resolved        'binding',
+43 silly resolved        'library',
+43 silly resolved        'plugin',
+43 silly resolved        'client',
+43 silly resolved        'mysql',
+43 silly resolved        'libmysql' ],
+43 silly resolved     homepage: 'http://nodejsdb.org/db-mysql',
+43 silly resolved     version: '0.7.6',
+43 silly resolved     engines: { node: '>=0.4.1' },
+43 silly resolved     maintainers: [ [Object] ],
+43 silly resolved     bugs: { url: 'http://github.com/mariano/node-db-mysql/issues' },
+43 silly resolved     licenses: [ [Object] ],
+43 silly resolved     repositories: [ [Object] ],
+43 silly resolved     main: './db-mysql',
+43 silly resolved     scripts:
+43 silly resolved      { install: 'node-waf configure build',
+43 silly resolved        preuninstall: 'rm -rf build/*',
+43 silly resolved        test: 'node-waf test',
+43 silly resolved        doc: 'node-waf doc' },
+43 silly resolved     devDependencies: { nodeunit: '*', nodelint: '*' },
+43 silly resolved     readme: '# db-mysql: MySQL database bindings for Node.js #\n\nFor detailed information about this and other Node.js\ndatabase bindings visit the [Node.js db-mysql homepage] [homepage].\n\n## INSTALL ##\n\nBefore proceeding with installation, you need to have the libmysql\ndevelopment libraries and include files. Access to the mysql_config \nbinary is mandatory, and its path has to be specified prior to \ninstallation (if its not within the system\'s path). For example, if \nthe path to your mysql_config is /usr/local/bin/mysql_config make \nsure to do the following (Ubuntu users need to install the \nlibmysqlclient-dev package):\n\n```bash\n$ export MYSQL_CONFIG=/usr/local/bin/mysql_config\n```\n\nOnce you are sure that either mysql_config is part of the path or that\nyou specified the MYSQL_CONFIG environment var, install with npm:\n\n```bash\n$ npm install db-mysql\n```\n\n## QUICK START ##\n\n```javascript\nvar mysql = require(\'db-mysql\');\nnew mysql.Database({\n    hostname: \'localhost\',\n    user: \'root\',\n    password: \'password\',\n    database: \'node\'\n}).connect(function(error) {\n    if (error) {\n        return console.log("CONNECTION ERROR: " + error);\n    }\n\n    this.query().select(\'*\').from(\'users\').execute(function(error, rows) {\n        if (error) {\n            return console.log(\'ERROR: \' + error);\n        }\n        console.log(rows.length + \' ROWS\');\n    });\n});\n```\n\n## LICENSE ##\n\nThis module is released under the [MIT License] [license].\n\n[homepage]: http://nodejsdb.org/db-mysql\n[license]: http://www.opensource.org/licenses/mit-license.php\n',
+43 silly resolved     readmeFilename: 'README.md',
+43 silly resolved     _id: 'db-mysql@0.7.6',
+43 silly resolved     _from: 'db-mysql@0.7.6' } ]
+44 info install db-mysql@0.7.6 into /Users/jaakko/Dropbox/Coding/Projects/backup/liero
+45 info installOne db-mysql@0.7.6
+46 verbose from cache /Users/jaakko/.npm/db-mysql/0.7.6/package/package.json
+47 info /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql unbuild
+48 verbose read json /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql/package.json
+49 verbose tar unpack /Users/jaakko/.npm/db-mysql/0.7.6/package.tgz
+50 silly lockFile 6ccf3878-ckup-liero-node-modules-db-mysql /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql
+51 verbose lock /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql /Users/jaakko/.npm/6ccf3878-ckup-liero-node-modules-db-mysql.lock
+52 silly lockFile 2e821ca5-o-npm-db-mysql-0-7-6-package-tgz /Users/jaakko/.npm/db-mysql/0.7.6/package.tgz
+53 verbose lock /Users/jaakko/.npm/db-mysql/0.7.6/package.tgz /Users/jaakko/.npm/2e821ca5-o-npm-db-mysql-0-7-6-package-tgz.lock
+54 silly gunzTarPerm modes [ '755', '644' ]
+55 silly gunzTarPerm extractEntry package.json
+56 silly gunzTarPerm extractEntry .npmignore
+57 silly gunzTarPerm extractEntry README.md
+58 silly gunzTarPerm extractEntry mysql-test-insert.js
+59 silly gunzTarPerm extractEntry mysql-test-long.js
+60 silly gunzTarPerm extractEntry mysql-test-manual-query.js
+61 silly gunzTarPerm extractEntry db-mysql.js
+62 silly gunzTarPerm extractEntry mysql-test-placeholder.js
+63 silly gunzTarPerm extractEntry mysql-test-long-number.js
+64 silly gunzTarPerm extractEntry mysql-test-sync.js
+65 silly gunzTarPerm extractEntry mysql-test.js
+66 silly gunzTarPerm extractEntry mysql-test-async.js
+67 silly gunzTarPerm extractEntry t.js
+68 silly gunzTarPerm extractEntry tests-db.js
+69 silly gunzTarPerm extractEntry mysql-test-sync-update.js
+70 silly gunzTarPerm extractEntry mysql-test-no-connection.js
+71 silly gunzTarPerm extractEntry tests.js
+72 silly gunzTarPerm extractEntry doc/api.html
+73 silly gunzTarPerm extractEntry doc/changelog.html
+74 silly gunzTarPerm extractEntry doc/index.html
+75 silly gunzTarPerm extractEntry src/connection.cc
+76 silly gunzTarPerm extractEntry src/connection.h
+77 silly gunzTarPerm extractEntry src/mysql.cc
+78 silly gunzTarPerm extractEntry src/mysql.h
+79 silly gunzTarPerm extractEntry src/mysql_bindings.cc
+80 silly gunzTarPerm extractEntry src/query.cc
+81 silly gunzTarPerm extractEntry src/query.h
+82 silly gunzTarPerm extractEntry src/result.cc
+83 silly gunzTarPerm extractEntry src/result.h
+84 silly gunzTarPerm extractEntry lib/node-db/README.md
+85 silly gunzTarPerm extractEntry lib/node-db/tests.js
+86 silly gunzTarPerm extractEntry lib/node-db/exception.h
+87 silly gunzTarPerm extractEntry lib/node-db/binding.h
+88 silly gunzTarPerm extractEntry lib/node-db/connection.h
+89 silly gunzTarPerm extractEntry lib/node-db/events.cc
+90 silly gunzTarPerm extractEntry lib/node-db/events.h
+91 silly gunzTarPerm extractEntry lib/node-db/binding.cc
+92 silly gunzTarPerm extractEntry lib/node-db/connection.cc
+93 silly gunzTarPerm extractEntry lib/node-db/node_defs.h
+94 silly gunzTarPerm extractEntry lib/node-db/query.cc
+95 silly gunzTarPerm extractEntry lib/node-db/query.h
+96 silly gunzTarPerm extractEntry lib/node-db/result.cc
+97 silly gunzTarPerm extractEntry lib/node-db/result.h
+98 silly gunzTarPerm extractEntry lib/node-db/exception.cc
+99 silly gunzTarPerm extractEntry .gitmodules
+100 silly gunzTarPerm extractEntry tests-settings.json
+101 silly gunzTarPerm extractEntry CHANGELOG
+102 silly gunzTarPerm extractEntry wscript
+103 verbose read json /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql/package.json
+104 silly lockFile 6ccf3878-ckup-liero-node-modules-db-mysql /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql
+105 silly lockFile 6ccf3878-ckup-liero-node-modules-db-mysql /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql
+106 silly lockFile 2e821ca5-o-npm-db-mysql-0-7-6-package-tgz /Users/jaakko/.npm/db-mysql/0.7.6/package.tgz
+107 silly lockFile 2e821ca5-o-npm-db-mysql-0-7-6-package-tgz /Users/jaakko/.npm/db-mysql/0.7.6/package.tgz
+108 info preinstall db-mysql@0.7.6
+109 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql/package.json
+110 verbose readDependencies using package.json deps
+111 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql/package.json
+112 verbose readDependencies using package.json deps
+113 silly resolved []
+114 verbose about to build /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql
+115 info build /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql
+116 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql/package.json
+117 verbose linkStuff [ false,
+117 verbose linkStuff   false,
+117 verbose linkStuff   false,
+117 verbose linkStuff   '/Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules' ]
+118 info linkStuff db-mysql@0.7.6
+119 verbose linkBins db-mysql@0.7.6
+120 verbose linkMans db-mysql@0.7.6
+121 verbose rebuildBundles db-mysql@0.7.6
+122 info install db-mysql@0.7.6
+123 verbose unsafe-perm in lifecycle true
+124 silly exec sh "-c" "node-waf configure build"
+125 silly sh,-c,node-waf configure build,/Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql spawning
+126 info db-mysql@0.7.6 Failed to exec install script
+127 info /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql unbuild
+128 verbose from cache /Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql/package.json
+129 info preuninstall db-mysql@0.7.6
+130 verbose unsafe-perm in lifecycle true
+131 silly exec sh "-c" "rm -rf build/*"
+132 silly sh,-c,rm -rf build/*,/Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules/db-mysql spawning
+133 info uninstall db-mysql@0.7.6
+134 verbose true,/Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules,/Users/jaakko/Dropbox/Coding/Projects/backup/liero/node_modules unbuild db-mysql@0.7.6
+135 info postuninstall db-mysql@0.7.6
+136 error db-mysql@0.7.6 install: `node-waf configure build`
+136 error `sh "-c" "node-waf configure build"` failed with 127
+137 error Failed at the db-mysql@0.7.6 install script.
+137 error This is most likely a problem with the db-mysql package,
+137 error not with npm itself.
+137 error Tell the author that this fails on your system:
+137 error     node-waf configure build
+137 error You can get their info via:
+137 error     npm owner ls db-mysql
+137 error There is likely additional logging output above.
+138 error System Darwin 13.0.0
+139 error command "node" "/usr/local/bin/npm" "install"
+140 error cwd /Users/jaakko/Dropbox/Coding/Projects/backup/liero
+141 error node -v v0.10.1
+142 error npm -v 1.2.15
+143 error code ELIFECYCLE
+144 verbose exit [ 1, true ]
