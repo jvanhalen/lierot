@@ -11,13 +11,17 @@ var MessageBroker = function(serverapp) {
     self.authenticated = 0;
     self.skipped = 0;
     self.receivedMessages = 0;
+    self.sentTotal = 0;
+    self.receivedTotal = 0;
+    self.avgThroughPut = 0;
+    self.avgInput = 0;
+    self.avgOutput = 0;
 
     self.init = function() {
         console.log("MessageBroker: initializing websocket");
+        self.tpinterval = setInterval(self.calculateThroughput, 5000);
         var WebSocketServer = require('ws').Server;
-
         self.wss = new WebSocketServer({server: self.serverapp});
-
         self.wss.on('connection', function(websocket) {
             //
 
@@ -52,12 +56,15 @@ var MessageBroker = function(serverapp) {
                 self.receivedMessages++;    // Possible overflow?
 
                 // TODO: Tarkista datan tyyppi ennen parsimista - muuten palvelin kaatuu
+                self.dataReceived(data.length); 
                 data = JSON.parse(data);
 
                 // Separate authentication and registration messages from others
-                if(data.name == "AUTH_REQ" || data.name == "REG_REQ") {
-                    console.log("authentication request from", websocket.username);
-                    if (null == websocket.username && undefined === self.clients[data.username]) {
+                // handle string lower case
+                if(data.name == "AUTH_REQ" || data.name == "REG_REQ" && typeof data.username === 'string') {
+                    console.log("authentication request from", data.username);
+                    var lcusername = data.username.toLowerCase();
+                    if (null == websocket.username && undefined == self.clients[lcusername]) {
                         self.messageHandler.authenticate(websocket, data);
                     }
                     else {
@@ -78,6 +85,7 @@ var MessageBroker = function(serverapp) {
                 else {
                     // Skip message
                     //console.log("skipped", data);
+                    //TODO: prevent DDos?
                     self.skipped++;
                     if (self.skipped % 1) { // Change 1 to 1000 in production
                         console.log("MessageBroker has skipped", self.skipped, "messages");
@@ -87,6 +95,33 @@ var MessageBroker = function(serverapp) {
         });
     },
 
+    self.dataSent = function(bytes) {
+        self.sentTotal += bytes;
+        //self.sent.push({timestamp: new Date().getTime(), bytes: bytes});
+    },
+    
+    self.dataReceived = function(bytes) {
+        self.receivedTotal += bytes;
+        //self.sent.push({timestamp: new Date().getTime(), bytes: bytes});
+    },
+    
+    self.calculateThroughput = function() {
+        if(0 == self.sentTotal) {
+            prevSentData = 0;
+            prevRecData = 0;
+        }
+        if(0 == self.receivedTotal) {
+            prevRecData = 0;
+        }
+        // Calculate average from last elapsed second
+        self.avgOutput = ((self.sentTotal - prevSentData)/1024).toFixed(2);
+        self.avgInput = ((self.receivedTotal - prevRecData)/1024).toFixed(2);
+        console.log("Output:", self.avgOutput, "KiB, Input:", self.avgInput, "KiB");
+        self.avgThroughPut = self.avgOutput+self.avgInput;
+        prevSentData = self.sentTotal;
+        prevRecData = self.receivedTotal;
+    },
+    
     self.receive = function(from, data) {
         //console.log("MessageBroker.receive", data);
         // Käytä JSON.parse-funktiota vastaanotetun datan parsimiseen
@@ -102,39 +137,67 @@ var MessageBroker = function(serverapp) {
         //console.log("MessageBroker: send to", to + ":", msg);
         if (undefined !== to && null != to) {
             var open = require('ws').OPEN;
-            if (undefined !== self.clients[to]) {
-                if (self.clients[to].readyState == open) {
-                    self.clients[to].send(JSON.stringify(msg));
+            var lcto = to.toLowerCase();
+            if (undefined !== self.clients[lcto]) {
+                if (self.clients[lcto].readyState == open) {
+                    var stringified = JSON.stringify(msg);
+                    self.dataSent(stringified.length);
+                    self.clients[lcto].send(stringified);
                 }
             }
         }
     },
 
-    self.broadcast = function(data) {
-        //console.log("broadcast data:", data.name);
+    self.broadcast = function(msg) {
+        //console.log("broadcast msg:", msg.name);
+        var totaldata = 0;
         for(var key in self.clients) {
             var open = require('ws').OPEN;
             if (self.clients[key].readyState == open) {
-                self.clients[key].send(JSON.stringify(data));
+                var stringified = JSON.stringify(msg);
+                totaldata += stringified.length;
+                self.clients[key].send(stringified);
             }
         }
+        self.dataSent(totaldata);
+
     },
 
     self.connectClient = function(websocket, username) {
-        console.log("MessageBroker: connected client", username);
-        // Add username to websocket
-        websocket.username = username;
-        self.clients[username] = websocket;
-        self.authenticated++;
+        if (typeof username === 'string') {
+            console.log("MessageBroker: connected client", username);
+            // Add username to websocket
+            websocket.username = username;
+            // Create new entry with lower case username
+            self.clients[username.toLowerCase()] = websocket;
+            self.authenticated++;
+            //code
+        }
+        else {
+            console.log("MessageBroker: fatal error in connectClient - username is not 'string'", username);
+        }
     },
 
     self.disconnectClient = function(username) {
-        console.log("MessageBroker: disconnect client:", username);
-        // Add username to websocket
-        delete self.clients[username];
-        self.authenticated--;
-        self.connected--;
+        if (typeof username === 'string') {
+            console.log("MessageBroker: disconnect client:", username);
+            // Add username to websocket
+            delete self.clients[username.toLowerCase()];
+            self.authenticated--;
+            self.connected--;
+        }
+        else {
+            console.log("MessageBroker: fatal error in disconnectClient - username is not 'string'", username);
+        }
+
     },
+
+    self.isConnected = function(username) {
+        if (undefined === self.clients[username.toLowerCase()]) {
+            return false;
+        }
+        return true;
+    }
 
     self.attachHandler = function(handler) {
         self.messageHandler = handler;

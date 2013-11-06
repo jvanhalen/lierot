@@ -216,24 +216,28 @@ var Peli = function () {
         switch (input) {
             case 65:
             case 97:
+            case 37:
                 //console.log("A");
                 direction = 'left';
                 break;
 
             case 68:
             case 100:
+            case 39:
                 //console.log("D");
                 direction = 'right';
                 break;
 
             case 83:
             case 115:
+            case 40:
                 //console.log("S");
                 direction = 'down';
                 break;
 
             case 87:
             case 119:
+            case 38:
                 //onsole.log("W");
                 direction = 'up';
                 break;

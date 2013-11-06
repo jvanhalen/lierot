@@ -9,6 +9,13 @@ CREDITS:
 http://itweek.deviantart.com/art/Knob-Buttons-Toolbar-icons-73463960 for the nice UI icons
 http://opengameart.org/content/completion-sound for pick up sound
 http://opengameart.org/content/retro music
+http://opengameart.org/content/menu-selection-click
+http://opengameart.org/content/yellow-blue-button-set nice buttons
+http://opengameart.org/content/magic-buttons
+http://opengameart.org/content/pd-glossy-icon-buttons
+http://opengameart.org/content/aqua-buttons
+http://opengameart.org/content/keyboard-keys for tablets
+http://opengameart.org/content/lpc-pennomis-ui-elements
 
 TODO:
  - more strict encapsulation in modules

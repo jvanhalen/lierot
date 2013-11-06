@@ -129,14 +129,13 @@ var MessageHandler = function() {
             if(null != user) {
 
                 var player = {username: user,
-                              authenticated: true,
+                              authenticated: self.messageBroker.isConnected(user),
                               ingame: self.gameServer.isIngame(user),
                               rank: 0}
 
                 msg.players.push(player);
             }
         }
-        //self.messageBroker.broadcast(msg);
         websocket.send(JSON.stringify(msg));
     },
 
@@ -146,7 +145,7 @@ var MessageHandler = function() {
         msg.type = "update";
 
         var player = {username: username,
-                      authenticated: false,
+                      authenticated: self.messageBroker.isConnected(username),
                       ingame: self.gameServer.isIngame(username),
                       rank: 0}
 
@@ -162,7 +161,7 @@ var MessageHandler = function() {
         var ingame = self.gameServer.isIngame(username);
 
         var player = {username: username,
-                      authenticated: true,
+                      authenticated: self.messageBroker.isConnected(username),
                       ingame: ingame,
                       rank: 0}
 

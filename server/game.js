@@ -77,6 +77,7 @@ var GameServer = function(messagehandler) {
 
     self.endGame = function(playerList) {
         console.log("GameServer.endGame");
+                           
         delete self.matchQueue[playerList[0]];
         var game = playerList[0].game;
         for (var x=0; x<playerList.length; x++) {
@@ -86,10 +87,14 @@ var GameServer = function(messagehandler) {
     },
 
     self.updatePlayerList = function(playerList, status) {
+        console.log("GameServer: updatePlayerList", playerList, status);
         var msg = messages.message.PLAYER_LIST.new();
         msg.type = "update";
         for(var item in playerList) {
-            msg.players[item] = {username: playerList[item], ingame: self.isIngame(playerList[item]), authenticated: true, rank: 0};
+            msg.players[item] = {username: playerList[item],
+                                 ingame: self.isIngame(playerList[item]),
+                                 authenticated: self.messageHandler.messageBroker.isConnected(playerList[item]),
+                                 rank: 0};
         }
         self.messageHandler.broadcast(msg);
     },
@@ -149,15 +154,30 @@ var GameServer = function(messagehandler) {
             console.log("msg", msg);
             if (false == self.isIngame(msg.challenger) && false == self.isIngame(msg.challengee)) {
                 if (undefined === self.matchQueue[msg.challenger]) {
+                    console.log("adding challenger to queue", msg.challenger);
                     self.matchQueue[msg.challenger] = {playerList: [msg.challenger], queueTimer: null};
                 }
                 if (self.matchQueue[msg.challenger].playerList.length < 4) {
-                    console.log("pushing challengee", msg.challengee, self.matchQueue[msg.challenger]);
-                    self.matchQueue[msg.challenger].playerList.push(msg.challengee);
+                    console.log("check that player has not yet joined", msg.challenger)
+                    // Check that challengee hasn't already joined
+                    var exists = false;
+                    for(var item in self.matchQueue[msg.challenger].playerList) {
+                        if (self.matchQueue[msg.challenger].playerList[item].toLowerCase() == msg.challengee.toLowerCase()) {
+                            console.log("exists", msg.challengee)
+                            exists = true;
+                        }
+                        else {
+                            console.log("did not match", self.matchQueue[msg.challenger].playerList[item].toLowerCase(), msg.challengee.toLowerCase())
+                        }
+                    }
+                    if (false == exists) {
+                        console.log("pushing challengee", msg.challengee, self.matchQueue[msg.challenger]);
+                        self.matchQueue[msg.challenger].playerList.push(msg.challengee);
+                    }
                 }
                 if (self.matchQueue[msg.challenger].playerList.length >= 2 && null == self.matchQueue[msg.challenger].queueTimer) {
                     console.log("queueTmo set for"), msg.challenger;
-                    self.matchQueue[msg.challenger].queueTimer = setTimeout(self.createGame, 10000, msg.challenger);
+                    self.matchQueue[msg.challenger].queueTimer = setTimeout(self.createGame, 6000, msg.challenger);
                 }
             }
             else {
@@ -173,7 +193,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
 
     var self = this;
 
-    self.tick = 150;    // 140-160 seems to be optimal
+    self.tick = 160;    // 140-180 seems to be optimal
 
     self.messageHandler = messageHandler;
     self.gameServer = gameServer;
@@ -279,6 +299,7 @@ var Peli = function(playerList, messageHandler, gameServer) {
     },
 
     self.disconnect = function(data) {
+        console.log("disconnect", data);
         for (var x=0; x<self.worms.length; x++) {
             if (self.worms[x].name == data.username) {
                 self.worms[x].alive = false;
@@ -290,7 +311,17 @@ var Peli = function(playerList, messageHandler, gameServer) {
 
     self.endGame = function() {
         // TODO: lopeta game
+        console.log("Game: endGame");
         clearInterval(self.timer);
+
+        // Update possible highscores
+        // TODO: direct access to databaseproxy
+        for(var item in self.worms) {
+            var username = self.worms[item].name;
+            var score = self.worms[item].score;
+            self.messageHandler.databaseProxy.setHighScore(username, score);            
+        }
+
         self.gameServer.endGame(self.playerList);
     },
 

@@ -10,7 +10,7 @@
   ],
   "author": {
     "name": "OpenShift",
-    "email": "ramr@example.org",
+    "email": "jaakko.vanhala@karelia.fi",
     "url": "http://www.openshift.com/"
   },
   "homepage": "http://www.openshift.com/",
@@ -19,14 +19,14 @@
     "url": "https://gitub.com/openshift/origin-server"
   },
   "engines": {
-    "node": ">= 0.6.0",
+    "node": ">= 0.10.0",
     "npm": ">= 1.0.0"
   },
   "dependencies": {
-    "ws": "0.4.30",
+    "ws": "0.4.31",
     "express": "3.3.8",
-    "db-mysql": "0.7.6",
-    "utils": "~0.1.4"
+    "utils": "~0.1.4",
+    "mysql": "~2.0.0-alpha9"
   },
   "devDependencies": {},
   "bundleDependencies": [],

@@ -4,7 +4,7 @@ var DatabaseProxy = require('./server/databaseproxy');
 var GameServer = require('./server/game');
 var messages = require('./common/messages');
 var os = require('os'); // For system load avg
-
+var fs = require('fs');
 
 var Server = function() {
 
@@ -43,6 +43,11 @@ var Server = function() {
             res.sendfile('index.html');
         });
 
+        self.app.get('/graph', function(req, res) {
+            console.log("loading client/system_graphs.html");
+            res.sendfile('client/system_graphs.html');
+        });
+        
         self.server = http.createServer(self.app);
         self.server.listen(self.port, self.ipaddress);
         console.log("server running @ ", self.ipaddress, ":", self.port);
@@ -75,19 +80,35 @@ var Server = function() {
         msg.authenticatedusers = self.messageBroker.authenticated,
         msg.totalusers = 0; // TODO: query database
         msg.userlist = [{username: "username",
-                         ingame: false}],
+                         ingame: false}];
+        msg.avgoutput = self.messageBroker.avgOutput;
+        msg.avginput = self.messageBroker.avgInput;
+        var timestamp = new Date().getTime();
+        msg.timestamp = timestamp;
 
-        console.log("mem: " + (msg.memusage.rss/1000000).toFixed(2) + "/" +
+        /*console.log("mem: " + (msg.memusage.rss/1000000).toFixed(2) + "/" +
                               (msg.memusage.heapTotal/1000000).toFixed(2) + "/" +
                               (msg.memusage.heapUsed/1000000).toFixed(2) +
                     " cpu: " + msg.systemload[0].toPrecision(2) + "/" +
                               msg.systemload[1].toPrecision(2) + "/" +
                               msg.systemload[2].toPrecision(2) +
                     " users: " + msg.connectedusers + "/" + msg.authenticatedusers + "/" + msg.totalusers + " (c/a/t)");
+                    */
+        // timestamp,avgOutput,avgInput,avgBandwith,players
+
+        var data = timestamp +","
+                   +msg.avgoutput+","
+                   +msg.avginput+","
+                   +msg.authenticatedusers+"\n";
+                   
+        var fs = require('fs');
+        fs.appendFileSync('client/bandwidth.csv', data);
+        
         self.messageHandler.broadcast(msg);
-    }
+    },
+    
     // Poll some statistics
-    self.timer = setInterval(self.statistics, 10000);
+    self.timer = setInterval(self.statistics, 1000);
 
     // Aseta palvelimen sisäiset muuttujat
     self.setupVariables();

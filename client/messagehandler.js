@@ -4,6 +4,11 @@ var MessageHandler = function(game) {
     self.username = undefined;
     self.messageBroker = undefined;
 
+    self.avgInputData = [];
+    self.avgOutputData = [];
+    self.authenticatedData = [];
+    self.bar = null;
+
     self.receive = function(msg) {
         //console.log(msg);
 
@@ -52,12 +57,15 @@ var MessageHandler = function(game) {
                 break;
 
             case 'SERVER_STATS':
+                self.createGraphs(msg);
                 document.getElementById('palvelinloki').innerHTML = "";
                 document.getElementById('palvelinloki').innerHTML += "<strong>System:</strong> " + msg.system + "<br />";
                 document.getElementById('palvelinloki').innerHTML += "<strong>System load: </strong> " + msg.systemload[0].toPrecision(2) + "/" + msg.systemload[1].toPrecision(2) + "/" + msg.systemload[2].toPrecision(2) + " (load averages)<br />";
                 document.getElementById('palvelinloki').innerHTML += "<strong>Mem usage: </strong> " + (msg.memusage.rss/1000000).toFixed(2) + "/" +  (msg.memusage.heapTotal/1000000).toFixed(2) + "/" + (msg.memusage.heapUsed/1000000).toFixed(2) + " (rss/total/used in MB)<br />";
                 document.getElementById('palvelinloki').innerHTML += "<strong>Uptime: </strong> " + Math.round(msg.uptime) + " seconds<br />";
                 document.getElementById('palvelinloki').innerHTML += "<strong>Users: </strong> " + msg.authenticatedusers + "/" + msg.connectedusers + "<br />";
+                document.getElementById('palvelinloki').innerHTML += "<strong>Data averages: </strong> " + "input " + msg.avginput + " output  " + msg.avgoutput + " (KiB)<br />";
+
                 break;
 
             case 'CHALLENGE_REQ':
@@ -74,11 +82,51 @@ var MessageHandler = function(game) {
         }
     },
 
+    self.createGraphs = function(msg) {
+        /*
+        //self.avgInputData.push(msg.avginput);
+        self.avgOutputData.push(msg.avgoutput*100);
+
+        if (self.avgOutputData.length > 30) {
+            console.log("splicing from", self.avgOutputData)
+            self.avgOutputData.splice(0,1);
+        }
+
+        //console.log(self.avgOutputData);
+
+        // Some data that is to be shown on the bar chart. To show a stacked or grouped chart
+        // each number should be an array of further numbers instead.
+        var data = [280,45,133];
+
+
+        // An example of the data used by stacked and grouped charts
+        // var data = [[1,5,6], [4,5,3], [7,8,9]]
+
+
+        // Create the br chart. The arguments are the ID of the canvas tag and the data
+            self.line = new RGraph.Line('cvs', self.avgOutputData)
+            self.line
+
+            // Now configure the chart to appear as wanted by using the .Set() method.
+            // All available properties are listed below.
+            .Set('chart.labels', [])
+            .Set('chart.gutter.left', 45)
+            .Set('chart.background.barcolor1', 'white')
+            .Set('chart.background.barcolor2', 'white')
+            .Set('chart.background.grid', true)
+            .Set('chart.colors', ['red'])
+
+        // Now call the .Draw() method to draw the chart
+        self.line.Draw();
+        */
+    },
+
     self.init = function() {
         console.log("MessageHandler started");
     },
 
     self.send = function(data) {
+        console.log("sending:",data);
         self.messageBroker.send(data);
     },
 

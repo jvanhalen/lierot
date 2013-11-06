@@ -17,6 +17,7 @@ CREATE TABLE UserAccount (
   SessionKey varchar(16),
   LastLogin timestamp,
   UserStatus tinyint NOT NULL DEFAULT '0',
+  HighScore smallint NOT NULL DEFAULT '0', -- Lisätty 1.11.2013
   PRIMARY KEY (ID),
   UNIQUE UserName (UserName),
   UNIQUE Email (Email),
@@ -24,7 +25,6 @@ CREATE TABLE UserAccount (
   KEY UserStatus (UserStatus),
   KEY PasswordHash (PasswordHash)
 ) ENGINE=InnoDB;
-
 
 # ------------------------------
 # Taulu: Game

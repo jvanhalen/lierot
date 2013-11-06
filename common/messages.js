@@ -131,8 +131,11 @@
                 memusage: "string",
                 system: "string",
                 connectedusers: 0,
-                authenticated: 0,
-                totalusers: 0
+                authenticatedusers: 0,
+                totalusers: 0,
+                avgoutput: 0,
+                avginput: 0,
+                timestamp: 0
             },
             new: function() {
                 return JSON.parse(JSON.stringify(this.message));
@@ -145,7 +148,8 @@
                 players: [{username: "Wobotti",
                           ingame: true,
                           authenticated: true,    // false if user disconnected, otherwise true
-                          rank: 0}]
+                          rank: 0,
+                          highscore: 0}]
             },
             new: function() {
                 return JSON.parse(JSON.stringify(this.message));
